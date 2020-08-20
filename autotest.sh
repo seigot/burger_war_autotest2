@@ -113,7 +113,7 @@ do
 	cd $HOME/catkin_ws/src
 	rm -fr burger_war > /dev/null
 	git clone ${REPOSITORY_LIST[$i]} burger_war
-	ENEMY_NAME='echo ${REPOSITORY_LIST[$i]} | cut -d'/' -f4'
+	ENEMY_NAME=`echo ${REPOSITORY_LIST[$i]} | cut -d'/' -f4`
 	echo $ENEMY_NAME
 
 	# game
