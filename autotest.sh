@@ -27,7 +27,7 @@ function do_game(){
     sleep $GAME_TIME
 
     #get result
-    timeout 30s python ~/catkin_ws/src/burger_war/autotest/get_score.py > out.log
+    timeout 30s python ~/catkin_ws/src/burger_war_autotest2/get_score.py > out.log
     MY_SCORE=`cat out.log | grep -w my_score | cut -d'=' -f2`
     ENEMY_SCORE=`cat out.log | grep -w enemy_score | cut -d'=' -f2`
     DATE=`date --iso-8601=seconds`
@@ -114,6 +114,7 @@ do
 	rm -fr burger_war > /dev/null
 	git clone ${REPOSITORY_LIST[$i]} burger_war
 	ENEMY_NAME='echo ${REPOSITORY_LIST[$i]} | cut -d'/' -f4'
+	echo $ENEMY_NAME
 
 	# game
 	cd burger_war
