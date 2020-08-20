@@ -1,12 +1,11 @@
 #!/bin/bash -x
 
-cd $HOME/catkin_ws/src/burger_war
-
-BURGER_WAR_REPOSITORY=$HOME/catkin_ws/src/burger_war
-BURGER_WAR_AUTOTEST_LOG_REPOSITORY=$HOME/catkin_ws/src/burger_war_autotest
-RESULTLOG=$BURGER_WAR_REPOSITORY/autotest/result.log
+#cd $HOME/catkin_ws/src/burger_war
+#BURGER_WAR_REPOSITORY=$HOME/catkin_ws/src/burger_war
+RESULTLOG=$HOME/catkin_ws/src/result.log
 SRC_LOG=$RESULTLOG 
-DST_LOG=$BURGER_WAR_AUTOTEST_LOG_REPOSITORY/result/result-20200803.log
+BURGER_WAR_AUTOTEST_LOG_REPOSITORY=$HOME/catkin_ws/src/burger_war_autotest2
+DST_LOG=$BURGER_WAR_AUTOTEST_LOG_REPOSITORY/result/result-20200820.log
 LATEST_GITLOG_HASH="xxxx"
 
 echo "iteration, enemy_level, game_time(s), date, my_score, enemy_score, battle_result" > $RESULTLOG
@@ -79,12 +78,46 @@ function do_push(){
     popd
 }
 
+REPOSITORY_LIST=(
+    "https://github.com/BolaDeArroz/burger_war"
+    #"https://github.com/seigot/burger_war"
+    "https://github.com/CollegeFriends/burger_war"
+    "https://github.com/raucha/burger_war"
+    "https://github.com/dnrtk/burger_war"
+    "https://github.com/K-Shima-0325/burger_war"
+    "https://github.com/sugarman1983/burger_war"
+    "https://github.com/yshimomura/burger_war"
+    "https://github.com/Gantetsu-robocon/burger_war"
+    "https://github.com/F0CACC1A/burger_war"
+    "https://github.com/kanemotohidekatsu/burger_war"
+    "https://github.com/nakanishi-keita001/qqq/"
+    "https://github.com/tsuburin/burger_war"
+    "https://github.com/JinruiMinaDaito/burger_war"
+    "https://github.com/kyad/burger_war_20200818"
+    "https://github.com/safubuki/burger_war"
+    #"https://github.com/airkei/burger_war"
+    "https://github.com/X-Ranger/burger_war"
+    "https://github.com/naoyayosinaga/burger_war"
+    "https://github.com/TEAM-QWERT/burger_war"
+    "https://github.com/rhc-ipponmanzoku/burger_war"
+)
+
 # main loop
 for ((i=0; i<${LOOP_TIMES}; i++));
 do
-    check_latest_hash
-    do_game ${i} 1 225 # 180 * 5/4 
-    do_game ${i} 2 225 # 180 * 5/4 
-    do_game ${i} 3 225 # 180 * 5/4
-    do_push
+    # battle with all repository
+    for (( i = 0; i < ${#REPOSITORY_LIST[@]}; ++i ))
+    do
+	# init & clone
+	cd $HOME/catkin_ws/src
+	rm -fr burger_war > /dev/null
+	git clone ${REPOSITORY_LIST[$i]} burger_war
+	ENEMY_NAME='echo ${REPOSITORY_LIST[$i]} | cut -d'/' -f4'
+
+	# game
+	cd burger_war
+	do_game ${i} 3 225 # 180 * 5/4
+	#check_latest_hash
+	#do_push
+    done
 done
