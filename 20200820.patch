@@ -1,0 +1,233 @@
+diff --git a/burger_navigation/launch/burger_navigation.launch b/burger_navigation/launch/burger_navigation.launch
+index 98fecac..1191922 100644
+--- a/burger_navigation/launch/burger_navigation.launch
++++ b/burger_navigation/launch/burger_navigation.launch
+@@ -11,9 +11,11 @@
+   <arg name="initial_pose_x" default="-1.3"/>
+   <arg name="initial_pose_y" default="0.0"/>
+   <arg name="initial_pose_a" default="0.0"/>
++  <arg name="robot_namespace" default=""/>
+ 
+   <!-- Map server -->
+   <node pkg="map_server" name="map_server" type="map_server" args="$(arg map_file)">
++    <param name="frame_id"  value="$(arg robot_namespace)/map"/>
+   </node>
+ 
+ 
+@@ -50,9 +52,9 @@
+     <param name="odom_alpha2"               value="0.1"/>
+     <param name="odom_alpha3"               value="0.1"/>
+     <param name="odom_alpha4"               value="0.1"/>
+-    <param name="odom_frame_id"             value="odom"/>
+-    <param name="base_frame_id"             value="base_footprint"/>
+-    <param name="global_frame_id"           value="map"/>
++    <param name="odom_frame_id"             value="$(arg robot_namespace)/odom"/>
++    <param name="base_frame_id"             value="$(arg robot_namespace)/base_footprint"/>
++    <param name="global_frame_id"           value="$(arg robot_namespace)/map"/>
+   </node>
+ 
+ 
+@@ -71,12 +73,12 @@
+     <remap from="odom" to="$(arg odom_topic)"/>
+     <param name="DWAPlannerROS/min_vel_x" value="0.0" if="$(arg move_forward_only)" />
+ 
+-    <param name="local_costmap/global_frame"             value="odom"/>
+-    <param name="local_costmap/robot_base_frame"             value="base_link"/>
+-    <param name="local_costmap/scan/sensor_frame"             value="base_scan"/>
+-    <param name="global_costmap/robot_base_frame"            value="base_link"/>
+-    <param name="global_costmap/global_frame"            value="map"/>
+-    <param name="global_costmap/scan/sensor_frame"             value="base_scan"/>
++    <param name="local_costmap/global_frame"             value="$(arg robot_namespace)/odom"/>
++    <param name="local_costmap/robot_base_frame"             value="$(arg robot_namespace)/base_link"/>
++    <param name="local_costmap/scan/sensor_frame"             value="$(arg robot_namespace)/base_scan"/>
++    <param name="global_costmap/robot_base_frame"            value="$(arg robot_namespace)/base_link"/>
++    <param name="global_costmap/global_frame"            value="$(arg robot_namespace)/map"/>
++    <param name="global_costmap/scan/sensor_frame"             value="$(arg robot_namespace)/base_scan"/>
+   </node>
+ 
+   <!-- rviz -->
+diff --git a/burger_war/launch/obstacle_detector.launch b/burger_war/launch/obstacle_detector.launch
+index 6187351..ce67638 100644
+--- a/burger_war/launch/obstacle_detector.launch
++++ b/burger_war/launch/obstacle_detector.launch
+@@ -1,5 +1,5 @@
+ <launch>
+-
++  <arg name="robot_namespace" default=""/>
+   <node name="obstacle_extractor" pkg="obstacle_detector" type="obstacle_extractor_node">
+     <param name="active" value="true"/>
+     <param name="use_scan" value="true"/>
+@@ -15,12 +15,12 @@
+     <param name="max_circle_radius" value="0.15"/>
+     <param name="radius_enlargement" value="0.0"/>
+ 
+-    <param name="frame_id" value="/map"/>
++    <param name="frame_id" value="$(arg robot_namespace)/map"/>
+   </node>
+ 
+   <node name="obstacle_tracker" pkg="obstacle_detector" type="obstacle_tracker_node">
+     <param name="loop_rate" value="15"/>
+-    <param name="frame_id" value="/map"/>
++    <param name="frame_id" value="$(arg robot_namespace)/map"/>
+     <remap from="tracked_obstacles" to="obstacles"/>
+     <param name="active" value="true"/>
+ 
+diff --git a/burger_war/launch/sim_robot_run.launch b/burger_war/launch/sim_robot_run.launch
+index 34e6f46..b788d42 100644
+--- a/burger_war/launch/sim_robot_run.launch
++++ b/burger_war/launch/sim_robot_run.launch
+@@ -2,13 +2,17 @@
+ <launch>
+   <arg name="enemy_level" default="1"/>
+ 
+-<!-- Your robot control node run  red side-->
+-  <include file="$(find burger_war)/launch/your_burger.launch">
+-    <arg name="side" value="r" />
+-  </include>
+-
+-<!-- enemy bot run  blue side-->
+-  <group ns="enemy_bot">
++  <!-- enemy bot run  blue side-->
++  <group ns="enemy_bot">  
++    <!-- Your robot control node run  red side-->
++    <include file="$(find burger_war)/launch/your_burger.launch">
++      <arg name="robot_namespace" value="enemy_bot" /> <!-- value="" or "enemy_bot" and change ns-->
++      <arg name="side" value="r" />
++    </include>
++  </group>
++  
++  <!-- enemy bot run  blue side-->
++  <group ns="enemy_bot">  
+     <!-- level 1 (default) -->
+     <group if="$(eval enemy_level==1)"> 
+       <include file="$(find burger_war)/launch/sim_level_1_cheese.launch">
+diff --git a/burger_war/launch/your_burger.launch b/burger_war/launch/your_burger.launch
+index 9a53ded..6dfce1d 100644
+--- a/burger_war/launch/your_burger.launch
++++ b/burger_war/launch/your_burger.launch
+@@ -1,12 +1,13 @@
+ <?xml version="1.0"?>
+ <launch>
+   <arg name="side" default="r"/> <!-- "b" = blue side, "r" = red side  -->
+-
++  <arg name="robot_namespace" default=""/>
+     <!-- You can change control program  -->
+ 
+     <!-- sample program node -->
+ 
+     <include file="$(find burger_navigation)/launch/burger_navigation.launch">
++      <arg name="robot_namespace" default="$(arg robot_namespace)"/>
+     </include>
+ 
+     <!-- <node pkg="burger_war" type="seigoRun1.py" name="seigoRun" output="screen">
+@@ -14,6 +15,7 @@
+     </node> -->
+ 
+     <node pkg="burger_war" type="seigoRun2.py" name="seigoRun" output="screen">
++      <param name="robot_namespace" value="$(arg robot_namespace)" />
+       <param name="robot_name" value="$(arg side)" />
+       <!-- 何秒前までの敵検出結果を有効とするか -->
+       <param name="detect_enemy_time_tolerance" value="0.5" />
+@@ -27,8 +29,12 @@
+       <param name="attack_angle_th" value="0.785" />
+     </node>
+ 
+-    <include file="$(find burger_war)/launch/obstacle_detector.launch"/>
+-    <node pkg="burger_war" type="enemy_detector.py" name="enemy_detector_node" output="screen"/>
++    <include file="$(find burger_war)/launch/obstacle_detector.launch">
++      <arg name="robot_namespace" default="$(arg robot_namespace)"/>
++    </include>
++    <node pkg="burger_war" type="enemy_detector.py" name="enemy_detector_node" output="screen">
++      <param name="robot_namespace" value="$(arg robot_namespace)"/>
++    </node>
+     <!-- END sample program node -->
+ 
+     <!-- End of your space  -->
+diff --git a/burger_war/scripts/enemy_detector.py b/burger_war/scripts/enemy_detector.py
+index e7bcafc..87703fa 100755
+--- a/burger_war/scripts/enemy_detector.py
++++ b/burger_war/scripts/enemy_detector.py
+@@ -21,10 +21,12 @@ class EnemyDetector:
+         self.sub_obstacles   = rospy.Subscriber('obstacles', Obstacles, self.obstacles_callback)
+         self.pub_robot2enemy = rospy.Publisher('robot2enemy', Float32, queue_size=10)
+         self.pub_enemy_position = rospy.Publisher('enemy_position', Odometry, queue_size=10)
++        self.robot_namespace = rospy.get_param('~robot_namespace', '')
+         self.robot_name      = rospy.get_param('~robot_name', '')
+-
++        print("self.robot_namespace", self.robot_namespace)
++        print("self.robot_name", self.robot_name)        
+         self.enemy_pos = Odometry()
+-        self.enemy_pos.header.frame_id = 'map'
++        self.enemy_pos.header.frame_id = self.robot_namespace+'/map'
+         
+     def obstacles_callback(self, msg):
+ 
+@@ -36,20 +38,21 @@ class EnemyDetector:
+ 
+             temp_x = msg.circles[num].center.x
+             temp_y = msg.circles[num].center.y
+-
++            
+             #フィールド内のオブジェクトであればパス
+             if self.is_point_emnemy(temp_x, temp_y) == False:
+                 continue
+ 
++            print("enemy position")
+             #敵の座標をTFでbroadcast
+-            enemy_frame_name = self.robot_name + '/enemy_' + str(num)
+-            map_frame_name   = self.robot_name + "/map"
++            enemy_frame_name = '/'+self.robot_namespace + '/enemy_' + str(num)
++            map_frame_name   = '/'+self.robot_namespace + "/map"
+             self.tf_broadcaster.sendTransform((temp_x,temp_y,0), (0,0,0,1), rospy.Time.now(), enemy_frame_name, map_frame_name)
+ 
+             #ロボットから敵までの距離を計算
+             try:
+-                target_frame_name = self.robot_name + '/enemy_' + str(num)
+-                source_frame_name = self.robot_name + "/base_footprint"
++                target_frame_name = '/'+self.robot_namespace + '/enemy_' + str(num)
++                source_frame_name = '/'+self.robot_namespace + "/base_footprint"
+                 (trans,rot) = self.tf_listener.lookupTransform(source_frame_name, target_frame_name, rospy.Time(0))
+             except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException):
+                 continue
+@@ -64,8 +67,8 @@ class EnemyDetector:
+         #敵を検出している場合、その座標と距離を出力
+         if closest_enemy_len < sys.float_info.max:
+ 
+-            map_frame_name   = self.robot_name + "/map"
+-            enemy_frame_name = self.robot_name + "/enemy_closest"
++            map_frame_name   = '/'+self.robot_namespace + "/map"
++            enemy_frame_name = '/'+self.robot_namespace + "/enemy_closest"
+             self.tf_broadcaster.sendTransform((closest_enemy_x,closest_enemy_y,0), (0,0,0,1), rospy.Time.now(), enemy_frame_name, map_frame_name)
+             
+             self.enemy_pos.header.stamp = rospy.Time.now()
+@@ -113,4 +116,4 @@ if __name__ == '__main__':
+     rospy.init_node('enemy_detector')
+     ed = EnemyDetector()
+     rospy.loginfo("Enemy Detector Start.")
+-    rospy.spin()
+\ No newline at end of file
++    rospy.spin()
+diff --git a/burger_war/scripts/seigoRun2.py b/burger_war/scripts/seigoRun2.py
+index 69ecd98..4dc56a2 100755
+--- a/burger_war/scripts/seigoRun2.py
++++ b/burger_war/scripts/seigoRun2.py
+@@ -69,6 +69,10 @@ class SeigoBot2:
+         self.send_goal(self.waypoint.get_current_waypoint())
+ 
+     def get_rosparam(self):
++        self.robot_namespace = rospy.get_param('~robot_namespace')
++        self.robot_name = rospy.get_param('~robot_name')
++        print("robot namespace", self.robot_namespace)
++        print("robot name", self.robot_name)
+         self.enemy_time_tolerance = rospy.get_param(
+             'detect_enemy_time_tolerance', default=0.5)
+         self.snipe_th = rospy.get_param('snipe_distance_th', default=0.8)
+@@ -238,7 +242,7 @@ class SeigoBot2:
+ 
+     def send_goal(self, point):
+         goal = MoveBaseGoal()
+-        goal.target_pose.header.frame_id = 'map'
++        goal.target_pose.header.frame_id = self.robot_namespace+"/map"
+         goal.target_pose.pose.position.x = point[0]
+         goal.target_pose.pose.position.y = point[1]
+ 
