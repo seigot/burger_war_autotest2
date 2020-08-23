@@ -10,7 +10,7 @@ LATEST_GITLOG_HASH="xxxx"
 
 echo "iteration, enemy_name, game_time(s), date, my_score, enemy_score, battle_result" > $RESULTLOG
 
-LOOP_TIMES=1
+LOOP_TIMES=100
 
 function do_game(){
     ITERATION=$1
@@ -117,6 +117,7 @@ function prepare_environment(){
     git clone $REPOSITORY burger_war        # clone your repository
     if [ $ENEMY_NAME == "raucha" ];then
 	# fetch and merge source code..
+	echo "-"
     fi
     git clone https://github.com/seigot/burger_war burger_war_seigot # clone this repository for enemy_bot
     if [ $ENEMY_NAME != "BolaDeArroz" ];then
