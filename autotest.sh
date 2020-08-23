@@ -85,9 +85,9 @@ function do_push(){
 }
 
 REPOSITORY_LIST=(
-    "https://github.com/BolaDeArroz/burger_war"
+    #"https://github.com/BolaDeArroz/burger_war"
     #"https://github.com/CollegeFriends/burger_war"
-    #"https://github.com/raucha/burger_war"
+    "https://github.com/raucha/burger_war"
     #"https://github.com/F0CACC1A/burger_war"
     #"https://github.com/dnrtk/burger_war"
     #"https://github.com/K-Shima-0325/burger_war"
@@ -115,6 +115,9 @@ function prepare_environment(){
     cd ~/catkin_ws/src
     sudo rm -r burger_war* obstacle_detector                              # delete old directory
     git clone $REPOSITORY burger_war        # clone your repository
+    if [ $ENEMY_NAME == "raucha" ];then
+	# fetch and merge source code..
+    fi
     git clone https://github.com/seigot/burger_war burger_war_seigot # clone this repository for enemy_bot
     if [ $ENEMY_NAME != "BolaDeArroz" ];then
 	git clone https://github.com/tysik/obstacle_detector.git         # if necessary
@@ -129,19 +132,20 @@ function prepare_environment(){
 }
 
 # main loop
-for ((i=0; i<${LOOP_TIMES}; i++));
+for ((j=0; j<${LOOP_TIMES}; j++));
 do
     # battle with all repository
-    for (( i = 0; i < ${#REPOSITORY_LIST[@]}; ++i ))
+    for (( i = 0; i < ${#REPOSITORY_LIST[@]}; i++ ))
     do
 	# prepare
 	ENEMY_NAME=`echo ${REPOSITORY_LIST[$i]} | cut -d'/' -f4`
-	prepare_environment ${REPOSITORY_LIST[$i]} $ENEMY_NAME
+	DST_LOG=$BURGER_WAR_AUTOTEST_LOG_REPOSITORY/result/result-${ENEMY_NAME}-20200822.log
+	#prepare_environment ${REPOSITORY_LIST[$i]} $ENEMY_NAME
 
 	# game
 	cd ~/catkin_ws/src
 	#check_latest_hash
-	do_game ${i} ${ENEMY_NAME} 225 # 180 * 5/4 
-	#do_push
+	do_game ${j} ${ENEMY_NAME} 225 # 180 * 5/4 
+	do_push
     done
 done
