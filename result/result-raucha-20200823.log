@@ -1,3 +1,4 @@
 iteration, enemy_name, game_time(s), date, my_score, enemy_score, battle_result
 0, raucha, 250, 2020-08-24T15:23:49+00:00, 13, 3, WIN
 1, raucha, 250, 2020-08-24T15:29:09+00:00, 7, 5, WIN
+2, raucha, 250, 2020-08-24T15:34:29+00:00, 15, 8, WIN
