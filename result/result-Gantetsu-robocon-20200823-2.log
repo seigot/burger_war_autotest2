@@ -22,3 +22,4 @@ iteration, enemy_name, game_time(s), date, my_score, enemy_score, battle_result
 20, Gantetsu-robocon, 250, 2020-08-24T19:16:19+00:00, 2, 2, LOSE
 21, Gantetsu-robocon, 250, 2020-08-24T19:22:17+00:00, 12, 2, WIN
 22, Gantetsu-robocon, 250, 2020-08-24T19:28:57+00:00, 6, 2, WIN
+23, Gantetsu-robocon, 250, 2020-08-24T19:35:27+00:00, 2, 4, LOSE
