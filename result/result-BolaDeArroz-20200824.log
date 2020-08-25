@@ -1,2 +1,4 @@
 iteration, enemy_name, game_time(s), date, my_score, enemy_score, battle_result
 0, BolaDeArroz, 250, 2020-08-25T14:31:34+00:00, 13, 7, WIN
+0, Gantetsu-robocon, 250, 2020-08-25T14:38:19+00:00, 13, 2, WIN
+1, BolaDeArroz, 250, 2020-08-25T14:43:39+00:00, 6, 3, WIN
