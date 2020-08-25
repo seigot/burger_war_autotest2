@@ -95,3 +95,4 @@ iteration, enemy_name, game_time(s), date, my_score, enemy_score, battle_result
 75, F0CACC1A, 250, 2020-08-25T22:11:25+00:00, 7, 5, WIN
 76, F0CACC1A, 250, 2020-08-25T22:16:43+00:00, 11, 12, LOSE
 77, F0CACC1A, 250, 2020-08-25T22:22:01+00:00, 11, 12, LOSE
+78, F0CACC1A, 250, 2020-08-25T22:27:20+00:00, 15, 3, WIN
