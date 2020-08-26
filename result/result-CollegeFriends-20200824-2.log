@@ -59,3 +59,4 @@ iteration, enemy_name, game_time(s), date, my_score, enemy_score, battle_result
 57, CollegeFriends, 250, 2020-08-26T19:59:13+00:00, 13, 7, WIN
 58, CollegeFriends, 250, 2020-08-26T20:04:34+00:00, 1, 5, LOSE
 59, CollegeFriends, 250, 2020-08-26T20:09:55+00:00, 13, 8, WIN
+60, CollegeFriends, 250, 2020-08-26T20:15:17+00:00, 7, 5, WIN
