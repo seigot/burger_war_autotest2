@@ -19,3 +19,4 @@ iteration, enemy_name, game_time(s), date, my_score, enemy_score, battle_result
 17, naoyayosinaga, 250, 2020-08-27T14:49:17+00:00, 15, 15, LOSE
 18, naoyayosinaga, 250, 2020-08-27T14:54:37+00:00, 13, 3, WIN
 19, naoyayosinaga, 250, 2020-08-27T14:59:58+00:00, 13, 3, WIN
+20, naoyayosinaga, 250, 2020-08-27T15:05:18+00:00, 15, 11, WIN
