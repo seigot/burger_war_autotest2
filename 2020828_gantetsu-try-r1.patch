@@ -1,0 +1,536 @@
+diff --git a/burger_navigation/launch/burger_navigation.launch b/burger_navigation/launch/burger_navigation.launch
+index 57981e9..e1fb423 100644
+--- a/burger_navigation/launch/burger_navigation.launch
++++ b/burger_navigation/launch/burger_navigation.launch
+@@ -11,9 +11,11 @@
+   <arg name="initial_pose_x" default="-1.3"/>
+   <arg name="initial_pose_y" default="0.0"/>
+   <arg name="initial_pose_a" default="0.0"/>
++  <arg name="robot_namespace" default=""/>
+ 
+   <!-- Map server -->
+   <node pkg="map_server" name="map_server" type="map_server" args="$(arg map_file)">
++    <param name="frame_id"  value="$(arg robot_namespace)/map"/>
+   </node>
+ 
+ 
+@@ -41,12 +43,12 @@
+     <remap from="odom" to="$(arg odom_topic)"/>
+     <param name="DWAPlannerROS/min_vel_x" value="0.0" if="$(arg move_forward_only)" />
+ 
+-    <param name="local_costmap/global_frame"             value="odom"/>
+-    <param name="local_costmap/robot_base_frame"             value="base_link"/>
+-    <param name="local_costmap/scan/sensor_frame"             value="base_scan"/>
+-    <param name="global_costmap/robot_base_frame"            value="base_link"/>
+-    <param name="global_costmap/global_frame"            value="map"/>
+-    <param name="global_costmap/scan/sensor_frame"             value="base_scan"/>
++    <param name="local_costmap/global_frame"             value="$(arg robot_namespace)/odom"/>
++    <param name="local_costmap/robot_base_frame"             value="$(arg robot_namespace)/base_link"/>
++    <param name="local_costmap/scan/sensor_frame"             value="$(arg robot_namespace)/base_scan"/>
++    <param name="global_costmap/robot_base_frame"            value="$(arg robot_namespace)/base_link"/>
++    <param name="global_costmap/global_frame"            value="$(arg robot_namespace)/map"/>
++    <param name="global_costmap/scan/sensor_frame"             value="$(arg robot_namespace)/base_scan"/>
+   </node>
+ 
+   <!-- rviz -->
+diff --git a/burger_war/launch/enemy_detector.launch b/burger_war/launch/enemy_detector.launch
+index aac5287..c87bdad 100644
+--- a/burger_war/launch/enemy_detector.launch
++++ b/burger_war/launch/enemy_detector.launch
+@@ -2,15 +2,18 @@
+ <launch>
+   <arg name="robot_name" default=""/> <!-- robot_name for use NAMESPACE --> 
+   <arg name="side" default="r"/> <!-- "b" = blue side, "r" = red side  -->
++  <arg name="robot_namespace" default=""/>
+ 
+   <node pkg="burger_war" type="enemy_detector_lidar.py" name="enemy_detector_node" output="screen">
+-      <param name="robot_name" value="$(arg robot_name)" />
+-      <param name="th_corner" value="0.22"/>
+-      <param name="th_center" value="0.34"/>
++    <param name="robot_namespace" value="$(arg robot_namespace)" />
++    <param name="robot_name" value="$(arg robot_name)" />
++    <param name="th_corner" value="0.22"/>
++    <param name="th_center" value="0.34"/>
+   </node>
+ 
+   <include file="$(find burger_war)/launch/obstacle_detector.launch">
+-      <arg name="robot_name" value="$(arg robot_name)" />
++    <arg name="robot_namespace" default="$(arg robot_namespace)"/>
++    <arg name="robot_name" value="$(arg robot_name)" />
+   </include>
+ 
+ </launch>
+diff --git a/burger_war/launch/get_enemy.launch b/burger_war/launch/get_enemy.launch
+index f815308..3ad776b 100644
+--- a/burger_war/launch/get_enemy.launch
++++ b/burger_war/launch/get_enemy.launch
+@@ -3,29 +3,35 @@
+   <arg name="side" default="r"/>
+   <arg name="rate" default="5"/> <!-- rate = control rate -->
+   <arg name="robot_name" default=""/>
++  <arg name="robot_namespace" default=""/>
+ 
+   <!-- Estimate enemy position by canera -->
+     <node pkg="burger_war" type="EnemyState.py" name="relative_enemy_camera" output="screen">
++      <param name="robot_namespace" value="$(arg robot_namespace)" />
+       <param name="rate" value="10"/>
+       <param name="resize_rate" value="0.8"/> <!-- 0 〜 1 -->
+     </node>
+     <node pkg="burger_war" type="enemy_detector_camera.py" name="enemy_detector_camera" output="log">
++      <param name="robot_namespace" value="$(arg robot_namespace)" />
+     </node>
+     
+   <!-- Estimate enemy position by LiDAR -->
+   <include file="$(find burger_war)/launch/enemy_detector.launch">
+-      <arg name="robot_name" value="$(arg robot_name)" />
++    <arg name="robot_namespace" default="$(arg robot_namespace)"/>
++    <arg name="robot_name" value="$(arg robot_name)" />
+   </include>
+ 
+   <!-- Publish enemy pose -->
+   <node pkg="burger_war" type="pub_enemy.py" name="pub_enemy" output="log">
+-      <param name="rate" value="$(arg rate)"/>
+-      <param name="side" value="$(arg side)"/>
++    <param name="robot_namespace" value="$(arg robot_namespace)" />
++    <param name="rate" value="$(arg rate)"/>
++    <param name="side" value="$(arg side)"/>
+   </node>
+ 
+   <!-- Publish my pose topic -->  
+     <node pkg="burger_war" type="pub_my_pose.py" name="pub_my_pose" output="log">
++      <param name="robot_namespace" value="$(arg robot_namespace)" />
+       <param name="rate" value="$(arg rate)"/>
+     </node>
+ 
+-</launch>
+\ No newline at end of file
++</launch>
+diff --git a/burger_war/launch/obstacle_detector.launch b/burger_war/launch/obstacle_detector.launch
+index 408e129..2fa7fba 100644
+--- a/burger_war/launch/obstacle_detector.launch
++++ b/burger_war/launch/obstacle_detector.launch
+@@ -1,6 +1,7 @@
+ <launch>
+ 
+   <arg name="robot_name" default=""/>
++  <arg name="robot_namespace" default=""/>
+ 
+   <node name="obstacle_extractor" pkg="obstacle_detector" type="obstacle_extractor_node">
+     <param name="active"               value="true"/>
+@@ -17,13 +18,13 @@
+     <param name="max_circle_radius"    value="0.15"/>
+     <param name="radius_enlargement"   value="0.0"/>
+ 
+-    <param name="frame_id"             value="map"/>
++    <param name="frame_id"             value="$(arg robot_namespace)/map"/>
+     <!-- <param name="frame_id"             value="$(arg robot_name)/map"/> -->
+   </node>
+ 
+   <node name="obstacle_tracker" pkg="obstacle_detector" type="obstacle_tracker_node">
+     <param name="loop_rate"         value="10"/>
+-    <param name="frame_id"          value="$(arg robot_name)/map"/>
++    <param name="frame_id"          value="$(arg robot_namespace)/map"/>
+     <remap from="tracked_obstacles" to="obstacles"/>
+   </node>
+ 
+diff --git a/burger_war/launch/sim_robot_run.launch b/burger_war/launch/sim_robot_run.launch
+index 34e6f46..b70d823 100644
+--- a/burger_war/launch/sim_robot_run.launch
++++ b/burger_war/launch/sim_robot_run.launch
+@@ -3,9 +3,12 @@
+   <arg name="enemy_level" default="1"/>
+ 
+ <!-- Your robot control node run  red side-->
++<group ns="enemy_bot">
+   <include file="$(find burger_war)/launch/your_burger.launch">
+-    <arg name="side" value="r" />
++    <arg name="robot_namespace" value="enemy_bot" />
++    <arg name="side" value="b" />
+   </include>
++</group>
+ 
+ <!-- enemy bot run  blue side-->
+   <group ns="enemy_bot">
+diff --git a/burger_war/launch/your_burger.launch b/burger_war/launch/your_burger.launch
+index 0c730bb..0ff0616 100644
+--- a/burger_war/launch/your_burger.launch
++++ b/burger_war/launch/your_burger.launch
+@@ -2,9 +2,10 @@
+ <launch>
+   <!-- You can change control program  -->
+   <arg name="side" default="r"/> <!-- "b" = blue side, "r" = red side  -->
+-:burger_war
++  <arg name="robot_namespace" default=""/>
+ 
+     <node pkg="burger_war" type="send_priority_goal.py" name="send_priority_goal" output="screen">
++      <param name="robot_namespace" value="$(arg robot_namespace)" />
+       <param name="side" value="$(arg side)" />
+       <param name="near_backwall_dist" value="0.28"/> <!--ロボットの後ろの壁が近いかどうかの判定値-->
+       <param name="near_frontwall_dist" value="0.20"/> <!--ロボットの前の壁が近いかどうかの判定値-->
+@@ -22,12 +23,17 @@
+       <param name="current_dir" value= "$(find burger_war)/scripts"/>
+     </node>
+     
+-    <node pkg="burger_war" type="globalPlanner2.py" name="globalPlanner" output="screen"/>
++    <node pkg="burger_war" type="globalPlanner2.py" name="globalPlanner" output="screen">
++      <param name="robot_namespace" value="$(arg robot_namespace)" />
++    </node>
+     <!-- localization & navigation -->
+-    <include file="$(find burger_navigation)/launch/burger_navigation.launch"/>
+-
++    <include file="$(find burger_navigation)/launch/burger_navigation.launch">
++      <arg name="robot_namespace" default="$(arg robot_namespace)"/>
++    </include>
++    
+     <!-- Estimate enemy -->
+     <include file="$(find burger_war)/launch/get_enemy.launch">
++      <arg name="robot_namespace" default="$(arg robot_namespace)"/>
+       <arg name = "side" value= "$(arg side)"/>
+     </include>
+ 
+diff --git a/burger_war/scripts/EnemyState.py b/burger_war/scripts/EnemyState.py
+index 9fc35c6..6d8fe05 100755
+--- a/burger_war/scripts/EnemyState.py
++++ b/burger_war/scripts/EnemyState.py
+@@ -29,6 +29,7 @@ from time import sleep
+ class EnemyBot(object):
+     def __init__(self, use_camera=False):
+         #Get parameter
++        self.robot_namespace = rospy.get_param("~robot_namespace", 5)
+         self.rate = rospy.get_param("~rate", 5)
+         self.resi_per = rospy.get_param("~resize_rate", 0.8)
+ 
+@@ -619,4 +620,4 @@ class EnemyBot(object):
+ if __name__ == '__main__':
+     rospy.init_node('relative_enemy_camera')
+     bot = EnemyBot(use_camera=True)
+-    bot.strategy()
+\ No newline at end of file
++    bot.strategy()
+diff --git a/burger_war/scripts/enemy_detector.py b/burger_war/scripts/enemy_detector.py
+index a3d0fd9..37f5a61 100755
+--- a/burger_war/scripts/enemy_detector.py
++++ b/burger_war/scripts/enemy_detector.py
+@@ -15,7 +15,7 @@ class EnemyDetector:
+         self.tf_listener     = tf.TransformListener()
+         self.sub_obstacles   = rospy.Subscriber('obstacles', Obstacles, self.obstacles_callback)
+         self.pub_robot2enemy = rospy.Publisher('robot2enemy', Float32, queue_size=10)
+-        self.robot_name      = rospy.get_param('~robot_name', '')
++        self.robot_name      = rospy.get_param('~robot_namespace', '')
+ 
+     def obstacles_callback(self, msg):
+ 
+diff --git a/burger_war/scripts/enemy_detector_camera.py b/burger_war/scripts/enemy_detector_camera.py
+index c51655f..437442b 100755
+--- a/burger_war/scripts/enemy_detector_camera.py
++++ b/burger_war/scripts/enemy_detector_camera.py
+@@ -20,6 +20,7 @@ class TransformEnemy():
+     def __init__(self):
+         #Get parameter
+         #self.side = rospy.get_param("~side", "r")
++        self.robot_namespace = rospy.get_param("~robot_namespace", "r")
+ 
+         #Broadcaster, Subscriber
+         self.tfBuffer = tf2_ros.Buffer()
+@@ -28,8 +29,8 @@ class TransformEnemy():
+         self.tf_broadcaster = tf2_ros.TransformBroadcaster()
+         self.br_rel = tf2_ros.TransformBroadcaster()
+         self.br_abs = tf2_ros.TransformBroadcaster()
+-        self.enemy_sub = rospy.Subscriber('/relative_pose', PoseStamped, self.enemyCallback)
+-        self.flag_sub = rospy.Subscriber('/color_flag', Int16MultiArray,self.flagCallback)
++        self.enemy_sub = rospy.Subscriber('relative_pose', PoseStamped, self.enemyCallback)
++        self.flag_sub = rospy.Subscriber('color_flag', Int16MultiArray,self.flagCallback)
+         self.flag_pub = rospy.Publisher('color_flag_time', Int16MultiArray, queue_size=1)
+ 
+         #Initialize
+@@ -64,7 +65,7 @@ class TransformEnemy():
+     def tf_rel_camera(self):
+         t = TransformStamped()
+         t.header.stamp = rospy.Time.now()
+-        t.header.frame_id = 'base_footprint'
++        t.header.frame_id = self.robot_namespace+'/base_footprint'
+         t.child_frame_id = 'enemy_camera_rel'
+         t.transform.translation = self.enemy_ps.pose.position
+         t.transform.rotation = self.enemy_ps.pose.orientation
+@@ -73,8 +74,9 @@ class TransformEnemy():
+     #Broadcast absolute enmey from camera
+     def tf_abs_camera(self):
+         try:
+-            t = self.tfBuffer.lookup_transform('map', 'enemy_camera_rel', rospy.Time(0), rospy.Duration(1.0))
+-            t.header.frame_id = 'map'
++            map_topicname= self.robot_namespace + '/map'
++            t = self.tfBuffer.lookup_transform(map_topicname, 'enemy_camera_rel', rospy.Time(0), rospy.Duration(1.0))
++            t.header.frame_id = map_topicname
+             t.child_frame_id = 'enemy_camera_abs'
+             self.tf_broadcaster.sendTransform(t)
+         except (tf2_ros.LookupException, tf2_ros.ConnectivityException, tf2_ros.ExtrapolationException):
+diff --git a/burger_war/scripts/enemy_detector_lidar.py b/burger_war/scripts/enemy_detector_lidar.py
+index beed465..0a03a67 100755
+--- a/burger_war/scripts/enemy_detector_lidar.py
++++ b/burger_war/scripts/enemy_detector_lidar.py
+@@ -20,7 +20,7 @@ class EnemyDetector:
+         self.tf_broadcaster  = tf.TransformBroadcaster()
+         self.tf_listener     = tf.TransformListener()
+         self.pub_robot2enemy = rospy.Publisher('robot2enemy', Float32, queue_size=5)
+-        self.robot_name      = rospy.get_param('~robot_name', '')
++        self.robot_name      = rospy.get_param('~robot_namespace', '')
+ 
+         self.pub_flag = rospy.Publisher('lidar_flag', Bool, queue_size=1)
+         self.sub_obstacles   = rospy.Subscriber('obstacles', Obstacles, self.obstacles_callback)
+diff --git a/burger_war/scripts/globalPlanner2.py b/burger_war/scripts/globalPlanner2.py
+index ebfcb33..0c94c7c 100755
+--- a/burger_war/scripts/globalPlanner2.py
++++ b/burger_war/scripts/globalPlanner2.py
+@@ -25,6 +25,7 @@ class Node:
+         self.parent = parent
+         self.cost = cost
+         self.heuristic = heuristic
++        self.robot_namespace = rospy.get_param("~robot_namespace", '')
+ 
+     def __lt__(self, other):
+         return (self.cost + self.heuristic) < (other.cost + other.heuristic)
+@@ -32,6 +33,7 @@ class Node:
+ class PriorityQueue:
+     def __init__(self):
+         self._container = []
++        self.robot_namespace = rospy.get_param("~robot_namespace", '')
+ 
+     @property
+     def empty(self):
+@@ -50,6 +52,7 @@ class Graph:
+         self.pos = pos
+         self.num_node = len(self.pos)
+         self.num_edge = len(self.node_s)
++        self.robot_namespace = rospy.get_param("~robot_namespace", '')
+         if weight is None:
+             self.weight = [1]*self.num_edge
+         else:
+@@ -108,6 +111,7 @@ class GlobalPathPlan(object):
+     def __init__(self, start, goal, point=None):
+         self.start = start
+         self.goal = goal
++        self.robot_namespace = rospy.get_param("~robot_namespace", '')
+ 
+         #self.into_field()
+ 
+@@ -260,8 +264,11 @@ class GlobalPathPlan(object):
+ class move():
+     def __init__(self):
+         # Initialize
++        self.robot_namespace = rospy.get_param("~robot_namespace", '')
+         self.ac = actionlib.SimpleActionClient('move_base', MoveBaseAction)
++        print("move base!!!")
+         self.ac.wait_for_server()
++        print("move base end!!!")
+ 
+         self.desired_pose = PoseStamped()
+         self.current_pose = PoseStamped()
+@@ -272,6 +279,7 @@ class move():
+         self.status = 0
+ 
+         # Subscriber
++        print("service!!")
+         self.odom_sub = rospy.Subscriber('odom', Odometry, self.odomCallback)
+         self.move_base_status_sub = rospy.Subscriber('/move_base/status', GoalStatusArray, self.movebaseCallback)
+         
+@@ -280,7 +288,7 @@ class move():
+         self.reset_pathplan_sub = rospy.Service('reset_pathplan', Empty, self.resetPathplanCallback)
+         rospy.wait_for_service("pathplan_succeeded")
+         self.service_call = rospy.ServiceProxy("pathplan_succeeded", Empty)
+-
++        print("service end!!")
+ 
+     def desiredPoseCallback(self, data):
+         #if self.desired_pose.pose.position.x == data.goal.pose.position.x \
+@@ -322,7 +330,7 @@ class move():
+ 
+         ## Send next pos
+         self.goal = MoveBaseGoal()
+-        self.goal.target_pose.header.frame_id = 'map'
++        self.goal.target_pose.header.frame_id = self.robot_namespace + '/map'
+         self.goal.target_pose.header.stamp = rospy.Time.now()
+         self.goal.target_pose.pose.position.x =  pose[0]
+         self.goal.target_pose.pose.position.y =  pose[1]
+@@ -376,4 +384,4 @@ if __name__ == '__main__':
+     r = rospy.Rate(1)
+     while not rospy.is_shutdown():
+         mymove.sendDesiredPose()
+-        r.sleep()
+\ No newline at end of file
++        r.sleep()
+diff --git a/burger_war/scripts/pub_enemy.py b/burger_war/scripts/pub_enemy.py
+index 3a8c9a3..e25a40d 100755
+--- a/burger_war/scripts/pub_enemy.py
++++ b/burger_war/scripts/pub_enemy.py
+@@ -21,13 +21,14 @@ class PubEnemyPose():
+         #Get parameter
+         self.rate = rospy.get_param("~rate", 5)
+         self.side = rospy.get_param("~side", "r")
++        self.robot_namespace = rospy.get_param("~robot_namespace", '')
+ 
+         #Transformer, Listener, Subscriber, Publisher
+         self.tfBuffer = tf2_ros.Buffer()
+         self.listener = tf2_ros.TransformListener(self.tfBuffer)
+         self.enemy_pub = rospy.Publisher('absolute_pos', PoseStamped, queue_size=10)
+-        self.flag_sub = rospy.Subscriber('/color_flag_time', Int16MultiArray,self.flagcolorCallback)
+-        self.flag_sub = rospy.Subscriber('/lidar_flag', Bool, self.flaglidarCallback)
++        self.flag_sub = rospy.Subscriber('color_flag_time', Int16MultiArray,self.flagcolorCallback)
++        self.flag_sub = rospy.Subscriber('lidar_flag', Bool, self.flaglidarCallback)
+ 
+         #Initialize 
+         self.enemy_ps = PoseStamped()
+@@ -55,7 +56,8 @@ class PubEnemyPose():
+ 
+     def lisn_enemy_camera(self):
+         try:
+-            t = self.tfBuffer.lookup_transform('map', 'enemy_camera_abs', rospy.Time(0), rospy.Duration(1.0))
++            map_topicname= self.robot_namespace + '/map'
++            t = self.tfBuffer.lookup_transform(map_topicname, 'enemy_camera_abs', rospy.Time(0), rospy.Duration(1.0))
+             self.t_camera.pose.position = t.transform.translation
+             self.t_camera.pose.orientation = t.transform.rotation
+             self.flag_color = True
+@@ -65,7 +67,9 @@ class PubEnemyPose():
+     
+     def lisn_enemy_lidar(self):
+         try:
+-            t = self.tfBuffer.lookup_transform('map', 'enemy_lidar', rospy.Time(0), rospy.Duration(1.0))
++            map_topicname= self.robot_namespace + '/map'
++            enemy_lidar_topicname= self.robot_namespace + '/enemy_lidar'
++            t = self.tfBuffer.lookup_transform(map_topicname, enemy_lidar_topicname, rospy.Time(0), rospy.Duration(1.0))
+             self.t_lidar.pose.position = t.transform.translation
+             self.t_lidar.pose.orientation = t.transform.rotation
+             self.flag_lidar = True
+@@ -76,14 +80,14 @@ class PubEnemyPose():
+     def pub_enemy_abs(self):
+         if self.flag_lidar == True:
+             msg = PoseStamped()
+-            msg.header.frame_id = "map"
++            msg.header.frame_id = self.robot_namespace + '/map'
+             msg.pose.position = self.t_lidar.pose.position
+             msg.pose.orientation = self.t_lidar.pose.orientation
+             self.enemy_pub.publish(msg)
+             #rospy.loginfo("Publish Lidar pose")
+         elif self.flag_color == True:
+             msg = PoseStamped()
+-            msg.header.frame_id = "map"
++            msg.header.frame_id = self.robot_namespace + '/map'
+             msg.pose.position = self.t_camera.pose.position
+             msg.pose.orientation = self.t_camera.pose.orientation
+             self.enemy_pub.publish(msg)
+@@ -111,4 +115,4 @@ class PubEnemyPose():
+ if __name__ == '__main__':
+     rospy.init_node('pub_enemy')
+     pub_enemy = PubEnemyPose()
+-    pub_enemy.main()
+\ No newline at end of file
++    pub_enemy.main()
+diff --git a/burger_war/scripts/pub_my_pose.py b/burger_war/scripts/pub_my_pose.py
+index 8c405a8..1ba1602 100755
+--- a/burger_war/scripts/pub_my_pose.py
++++ b/burger_war/scripts/pub_my_pose.py
+@@ -17,6 +17,7 @@ class PubEnemyPose():
+         #Get parameter
+         self.rate = rospy.get_param("~rate", 1)
+         #self.side = rospy.get_param("~side", "r")
++        self.robot_namespace = rospy.get_param("~robot_namespace", '')
+ 
+         #Transformer, Listener, Subscriber, Publisher
+         self.tfBuffer = tf2_ros.Buffer()
+@@ -36,10 +37,12 @@ class PubEnemyPose():
+         rate = rospy.Rate(self.rate)
+ 
+         msg = PoseStamped()
+-        msg.header.frame_id = "map"
++        msg.header.frame_id = self.robot_namespace+"map"
+         while not rospy.is_shutdown():
+             try:
+-                t = self.tfBuffer.lookup_transform('map', 'base_footprint', rospy.Time(0), rospy.Duration(1.0))
++                map_topicname=self.robot_namespace + '/map'
++                footprint_topicname=self.robot_namespace + '/base_footprint'
++                t = self.tfBuffer.lookup_transform(map_topicname, footprint_topicname, rospy.Time(0), rospy.Duration(1.0))
+             except (tf2_ros.LookupException, tf2_ros.ConnectivityException, tf2_ros.ExtrapolationException):
+                 #rospy.logerr('LookupTransform Eroor my pose !')
+                 rate.sleep()
+diff --git a/burger_war/scripts/send_priority_goal.py b/burger_war/scripts/send_priority_goal.py
+index 26d96b9..6ad936e 100755
+--- a/burger_war/scripts/send_priority_goal.py
++++ b/burger_war/scripts/send_priority_goal.py
+@@ -29,8 +29,10 @@ from server_receiver import ServerReceiver
+         
+ class SendPriorityGoal(ServerReceiver): #ServerReceiverの継承
+     def __init__(self):
++        print("init!!!!!")
+         super(SendPriorityGoal,self).__init__()
+         #Get parameter
++        self.robot_namespace = rospy.get_param("~robot_namespace", '')
+         self.enemy_distance_th = rospy.get_param("~enemy_distance_th",0.80)
+         self.enemy_distance_th_small = rospy.get_param("~enemy_distance_th_small",0.50)
+         self.enemy_close = rospy.get_param("~enemy_close", 0.2)
+@@ -46,10 +48,13 @@ class SendPriorityGoal(ServerReceiver): #ServerReceiverの継承
+         self.path_success_srv = rospy.Service("pathplan_succeeded",Empty, self.successCallback)
+ 
+         #Service Client
++        print("init A!!!!!")
+         rospy.wait_for_service("desired_pose")
+         self.desired_pose_call = rospy.ServiceProxy("desired_pose",DesiredPose)
++        print("init B!!!!!")
+         rospy.wait_for_service("reset_pathplan")
+         self.cancel_goal_call = rospy.ServiceProxy("reset_pathplan", Empty)
++        print("init C!!!!!")
+         rospy.wait_for_service("vf_flag")
+         self.vf_flag_call = rospy.ServiceProxy("vf_flag", VisualFeedbackFlag) 
+ 
+@@ -72,7 +77,8 @@ class SendPriorityGoal(ServerReceiver): #ServerReceiverの継承
+         self.target_order = [[-0.951,-0.33,-np.pi/6],[-0.471,-0.2,np.pi/6],
+             [0,-0.53,np.pi],[0,-0.53,np.pi/2],[0,-0.53,0]] #的を取る順番
+         self.escape_flag = [0,0] #両方Trueの時に敵から遠い的を取りに行く 1:vf状態に入ったか 2:escape状態に入ったか
+-        
++        print("init end!!!!!")
++
+     def velCallback(self, data):
+         if not (data.linear.x == 0.0 and data.angular.z == 0.0):
+             self.pre_vel_time = rospy.Time.now().to_sec()
+@@ -82,8 +88,8 @@ class SendPriorityGoal(ServerReceiver): #ServerReceiverの継承
+         return EmptyResponse()
+ 
+     def send_goal(self,target):
+-        goal = PoseStamped()
+-        goal.header.frame_id = "map"
++        goal = PoseStamped()        
++        goal.header.frame_id = self.robot_namespace + "/map"
+         if target == "Enemy":
+             th = math.atan2(self.enemy_pose.pose.position.y-self.my_pose.pose.position.y,
+                             self.enemy_pose.pose.position.x-self.my_pose.pose.position.x)
+@@ -139,6 +145,8 @@ class SendPriorityGoal(ServerReceiver): #ServerReceiverの継承
+         print ""
+ 
+     def main(self):
++
++        print("start!!!!!!")
+         pre_state = ""
+         target = ""
+         send_time = 0
+@@ -339,6 +347,7 @@ class SendPriorityGoal(ServerReceiver): #ServerReceiverの継承
+         
+ 
+ if __name__ == '__main__':
+-    rospy.init_node('send_priority_goal')
++    print("start!!!!!")
++    rospy.init_node('send_priority_goal__test')
+     send = SendPriorityGoal()
+-    send.main()
+\ No newline at end of file
++    send.main()
+diff --git a/burger_war/scripts/transform_enemy_pose.py b/burger_war/scripts/transform_enemy_pose.py
+index f73b285..b1c250c 100755
+--- a/burger_war/scripts/transform_enemy_pose.py
++++ b/burger_war/scripts/transform_enemy_pose.py
+@@ -22,7 +22,7 @@ class TransformEnemy():
+ 
+         #Broadcaster, Subscriber
+         self.br = tf2_ros.TransformBroadcaster()
+-        self.enemy_sub = rospy.Subscriber('/relative_pose', PoseStamped, self.enemyCallback)
++        self.enemy_sub = rospy.Subscriber('relative_pose', PoseStamped, self.enemyCallback)
+         
+         #Initialize
+         self.enemy_ps = PoseStamped()
