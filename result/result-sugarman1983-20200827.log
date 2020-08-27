@@ -79,3 +79,4 @@ iteration, enemy_name, game_time(s), date, my_score, enemy_score, battle_result
 77, sugarman1983, 250, 2020-08-27T22:55:48+00:00, 3, 13, LOSE
 78, sugarman1983, 250, 2020-08-27T23:01:09+00:00, 15, 4, WIN
 79, sugarman1983, 250, 2020-08-27T23:06:31+00:00, 3, 14, LOSE
+80, sugarman1983, 250, 2020-08-27T23:11:52+00:00, 16, 18, LOSE
