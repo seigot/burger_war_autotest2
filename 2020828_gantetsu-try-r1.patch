@@ -1,8 +1,28 @@
+diff --git a/burger_navigation/CMakeLists.txt b/burger_navigation/CMakeLists.txt
+index 399008d..8627d51 100644
+--- a/burger_navigation/CMakeLists.txt
++++ b/burger_navigation/CMakeLists.txt
+@@ -1,5 +1,5 @@
+ cmake_minimum_required(VERSION 2.8.3)
+-project(burger_navigation)
++project(burger_navigation_level8)
+ 
+ ## Compile as C++11, supported in ROS Kinetic and newer
+ # add_compile_options(-std=c++11)
 diff --git a/burger_navigation/launch/burger_navigation.launch b/burger_navigation/launch/burger_navigation.launch
-index 57981e9..682b127 100644
+index 57981e9..90868e5 100644
 --- a/burger_navigation/launch/burger_navigation.launch
 +++ b/burger_navigation/launch/burger_navigation.launch
-@@ -11,9 +11,11 @@
+@@ -2,7 +2,7 @@
+ 
+ <launch>
+   <!-- Arguments -->
+-  <arg name="map_file" default="$(find burger_navigation)/maps/map.yaml"/>
++  <arg name="map_file" default="$(find burger_navigation_level8)/maps/map.yaml"/>
+   <arg name="open_rviz" default="true"/>
+   <arg name="move_forward_only" default="false"/>
+   <arg name="cmd_vel_topic" default="cmd_vel" />
+@@ -11,15 +11,17 @@
    <arg name="initial_pose_x" default="-1.3"/>
    <arg name="initial_pose_y" default="0.0"/>
    <arg name="initial_pose_a" default="0.0"/>
@@ -14,7 +34,30 @@ index 57981e9..682b127 100644
    </node>
  
  
-@@ -41,12 +43,12 @@
+   <!-- AMCL -->
+   <node pkg="amcl" type="amcl" name="amcl">
+-    <rosparam file="$(find burger_navigation)/param/amcl.yaml" command="load" />
++    <rosparam file="$(find burger_navigation_level8)/param/amcl.yaml" command="load" />
+     <param name="initial_pose_x"            value="$(arg initial_pose_x)"/>
+     <param name="initial_pose_y"            value="$(arg initial_pose_y)"/>
+     <param name="initial_pose_a"            value="$(arg initial_pose_a)"/>
+@@ -31,27 +33,27 @@
+   <node pkg="move_base" type="move_base" respawn="false" name="move_base" output="log">
+     <param name="base_local_planner" value="dwa_local_planner/DWAPlannerROS" />
+     <!--param name="base_local_planner" value="base_local_planner/TrajectoryPlannerROS"/-->
+-    <rosparam file="$(find burger_navigation)/param/costmap_common_params_burger.yaml" command="load" ns="global_costmap" />
+-    <rosparam file="$(find burger_navigation)/param/costmap_common_params_burger.yaml" command="load" ns="local_costmap" />
+-    <rosparam file="$(find burger_navigation)/param/local_costmap_params.yaml" command="load" />
+-    <rosparam file="$(find burger_navigation)/param/global_costmap_params.yaml" command="load" />
+-    <rosparam file="$(find burger_navigation)/param/move_base_params.yaml" command="load" />
+-    <rosparam file="$(find burger_navigation)/param/dwa_local_planner_params_burger.yaml" command="load" />
++    <rosparam file="$(find burger_navigation_level8)/param/costmap_common_params_burger.yaml" command="load" ns="global_costmap" />
++    <rosparam file="$(find burger_navigation_level8)/param/costmap_common_params_burger.yaml" command="load" ns="local_costmap" />
++    <rosparam file="$(find burger_navigation_level8)/param/local_costmap_params.yaml" command="load" />
++    <rosparam file="$(find burger_navigation_level8)/param/global_costmap_params.yaml" command="load" />
++    <rosparam file="$(find burger_navigation_level8)/param/move_base_params.yaml" command="load" />
++    <rosparam file="$(find burger_navigation_level8)/param/dwa_local_planner_params_burger.yaml" command="load" />
+     <remap from="cmd_vel" to="$(arg cmd_vel_topic)"/>
      <remap from="odom" to="$(arg odom_topic)"/>
      <param name="DWAPlannerROS/min_vel_x" value="0.0" if="$(arg move_forward_only)" />
  
@@ -33,6 +76,24 @@ index 57981e9..682b127 100644
    </node>
  
    <!-- rviz -->
+   <group if="$(arg open_rviz)"> 
+-    <node pkg="rviz" type="rviz" name="rviz" required="true" args="-d $(find burger_navigation)/rviz/burger_navigation.rviz">
++    <node pkg="rviz" type="rviz" name="rviz" required="true" args="-d $(find burger_navigation_level8)/rviz/burger_navigation.rviz">
+       <remap from="/move_base_simple/goal" to="move_base_simple/goal"/>
+     </node>
+   </group>
+diff --git a/burger_navigation/package.xml b/burger_navigation/package.xml
+index f5d1ba2..2eca712 100644
+--- a/burger_navigation/package.xml
++++ b/burger_navigation/package.xml
+@@ -1,6 +1,6 @@
+ <?xml version="1.0"?>
+ <package>
+-  <name>burger_navigation</name>
++  <name>burger_navigation_level8</name>
+   <version>0.0.0</version>
+   <description>The burger_navigation package</description>
+ 
 diff --git a/burger_navigation/param/amcl.yaml b/burger_navigation/param/amcl.yaml
 index 93ae22e..33be726 100644
 --- a/burger_navigation/param/amcl.yaml
@@ -47,8 +108,26 @@ index 93ae22e..33be726 100644
 +odom_frame_id: enemy_bot/odom 
 +base_frame_id: enemy_bot/base_footprint
 +global_frame_id: enemy_bot/map
+diff --git a/burger_war/CMakeLists.txt b/burger_war/CMakeLists.txt
+index 2357032..4e2c74c 100644
+--- a/burger_war/CMakeLists.txt
++++ b/burger_war/CMakeLists.txt
+@@ -1,5 +1,5 @@
+ cmake_minimum_required(VERSION 2.8.3)
+-project(burger_war)
++project(burger_war_level8)
+ 
+ ## Compile as C++11, supported in ROS Kinetic and newer
+ # add_compile_options(-std=c++11)
+@@ -208,4 +208,4 @@ include_directories(
+ 
+ 
+ add_executable(randomRun src/randomRun.cpp)
+-target_link_libraries(randomRun ${catkin_LIBRARIES})
+\ No newline at end of file
++target_link_libraries(randomRun ${catkin_LIBRARIES})
 diff --git a/burger_war/launch/enemy_detector.launch b/burger_war/launch/enemy_detector.launch
-index aac5287..55627c0 100644
+index aac5287..d46d990 100644
 --- a/burger_war/launch/enemy_detector.launch
 +++ b/burger_war/launch/enemy_detector.launch
 @@ -2,15 +2,18 @@
@@ -57,25 +136,27 @@ index aac5287..55627c0 100644
    <arg name="side" default="r"/> <!-- "b" = blue side, "r" = red side  -->
 +  <arg name="robot_namespace" default="enemy_bot"/>
  
-   <node pkg="burger_war" type="enemy_detector_lidar.py" name="enemy_detector_node" output="screen">
+-  <node pkg="burger_war" type="enemy_detector_lidar.py" name="enemy_detector_node" output="screen">
 -      <param name="robot_name" value="$(arg robot_name)" />
 -      <param name="th_corner" value="0.22"/>
 -      <param name="th_center" value="0.34"/>
++  <node pkg="burger_war_level8" type="enemy_detector_lidar.py" name="enemy_detector_node" output="screen">
 +    <param name="robot_namespace" value="$(arg robot_namespace)" />
 +    <param name="robot_name" value="$(arg robot_name)" />
 +    <param name="th_corner" value="0.22"/>
 +    <param name="th_center" value="0.34"/>
    </node>
  
-   <include file="$(find burger_war)/launch/obstacle_detector.launch">
+-  <include file="$(find burger_war)/launch/obstacle_detector.launch">
 -      <arg name="robot_name" value="$(arg robot_name)" />
++  <include file="$(find burger_war_level8)/launch/obstacle_detector.launch">
 +    <arg name="robot_namespace" default="$(arg robot_namespace)"/>
 +    <arg name="robot_name" value="$(arg robot_name)" />
    </include>
  
  </launch>
 diff --git a/burger_war/launch/get_enemy.launch b/burger_war/launch/get_enemy.launch
-index f815308..3ad776b 100644
+index f815308..6cc1222 100644
 --- a/burger_war/launch/get_enemy.launch
 +++ b/burger_war/launch/get_enemy.launch
 @@ -3,29 +3,35 @@
@@ -85,33 +166,38 @@ index f815308..3ad776b 100644
 +  <arg name="robot_namespace" default=""/>
  
    <!-- Estimate enemy position by canera -->
-     <node pkg="burger_war" type="EnemyState.py" name="relative_enemy_camera" output="screen">
+-    <node pkg="burger_war" type="EnemyState.py" name="relative_enemy_camera" output="screen">
++    <node pkg="burger_war_level8" type="EnemyState.py" name="relative_enemy_camera" output="screen">
 +      <param name="robot_namespace" value="$(arg robot_namespace)" />
        <param name="rate" value="10"/>
        <param name="resize_rate" value="0.8"/> <!-- 0 〜 1 -->
      </node>
-     <node pkg="burger_war" type="enemy_detector_camera.py" name="enemy_detector_camera" output="log">
+-    <node pkg="burger_war" type="enemy_detector_camera.py" name="enemy_detector_camera" output="log">
++    <node pkg="burger_war_level8" type="enemy_detector_camera.py" name="enemy_detector_camera" output="log">
 +      <param name="robot_namespace" value="$(arg robot_namespace)" />
      </node>
      
    <!-- Estimate enemy position by LiDAR -->
-   <include file="$(find burger_war)/launch/enemy_detector.launch">
+-  <include file="$(find burger_war)/launch/enemy_detector.launch">
 -      <arg name="robot_name" value="$(arg robot_name)" />
++  <include file="$(find burger_war_level8)/launch/enemy_detector.launch">
 +    <arg name="robot_namespace" default="$(arg robot_namespace)"/>
 +    <arg name="robot_name" value="$(arg robot_name)" />
    </include>
  
    <!-- Publish enemy pose -->
-   <node pkg="burger_war" type="pub_enemy.py" name="pub_enemy" output="log">
+-  <node pkg="burger_war" type="pub_enemy.py" name="pub_enemy" output="log">
 -      <param name="rate" value="$(arg rate)"/>
 -      <param name="side" value="$(arg side)"/>
++  <node pkg="burger_war_level8" type="pub_enemy.py" name="pub_enemy" output="log">
 +    <param name="robot_namespace" value="$(arg robot_namespace)" />
 +    <param name="rate" value="$(arg rate)"/>
 +    <param name="side" value="$(arg side)"/>
    </node>
  
    <!-- Publish my pose topic -->  
-     <node pkg="burger_war" type="pub_my_pose.py" name="pub_my_pose" output="log">
+-    <node pkg="burger_war" type="pub_my_pose.py" name="pub_my_pose" output="log">
++    <node pkg="burger_war_level8" type="pub_my_pose.py" name="pub_my_pose" output="log">
 +      <param name="robot_namespace" value="$(arg robot_namespace)" />
        <param name="rate" value="$(arg rate)"/>
      </node>
@@ -147,6 +233,30 @@ index 408e129..2fa7fba 100644
      <remap from="tracked_obstacles" to="obstacles"/>
    </node>
  
+diff --git a/burger_war/launch/send_priority_goal.launch b/burger_war/launch/send_priority_goal.launch
+index 7544941..2e77916 100644
+--- a/burger_war/launch/send_priority_goal.launch
++++ b/burger_war/launch/send_priority_goal.launch
+@@ -5,14 +5,14 @@
+     <!-- You can change control program  -->
+ 
+     <!-- sample program node -->
+-    <node pkg="burger_war" type="send_priority_goal.py" name="send_priority_goal" output="screen">
++    <node pkg="burger_war_level8" type="send_priority_goal.py" name="send_priority_goal" output="screen">
+      <param name="side" value="$(arg side)" />
+      <param name="focous_dist" value="0.20"/>
+-     <param name="current_dir" value= "$(find burger_war)/scripts"/>
++     <param name="current_dir" value= "$(find burger_war_level8)/scripts"/>
+     </node>
+     <!-- END sample program node -->
+ 
+     <!-- End of your space  -->
+     <!-- Launch navigation -->
+-    <include file="$(find burger_navigation)/launch/burger_navigation.launch"/>
+-</launch>
+\ No newline at end of file
++    <include file="$(find burger_navigation_level8)/launch/burger_navigation.launch"/>
++</launch>
 diff --git a/burger_war/launch/sim_robot_run.launch b/burger_war/launch/sim_robot_run.launch
 index 34e6f46..baef026 100644
 --- a/burger_war/launch/sim_robot_run.launch
@@ -190,7 +300,7 @@ index 34e6f46..baef026 100644
  </launch>
  
 diff --git a/burger_war/launch/your_burger.launch b/burger_war/launch/your_burger.launch
-index 0c730bb..da0c025 100644
+index 0c730bb..7f5ee63 100644
 --- a/burger_war/launch/your_burger.launch
 +++ b/burger_war/launch/your_burger.launch
 @@ -2,9 +2,15 @@
@@ -200,39 +310,65 @@ index 0c730bb..da0c025 100644
 -:burger_war
 +  <arg name="robot_namespace" default="enemy_bot"/>
  
+-    <node pkg="burger_war" type="send_priority_goal.py" name="send_priority_goal" output="screen">
 +    <!-- localization & navigation -->
-+    <include file="$(find burger_navigation)/launch/burger_navigation.launch">
++    <include file="$(find burger_navigation_level8)/launch/burger_navigation.launch">
 +      <arg name="robot_namespace" default="$(arg robot_namespace)"/>
 +    </include>
 +      
-     <node pkg="burger_war" type="send_priority_goal.py" name="send_priority_goal" output="screen">
++    <node pkg="burger_war_level8" type="send_priority_goal.py" name="send_priority_goal" output="screen">
 +      <param name="robot_namespace" value="$(arg robot_namespace)" />
        <param name="side" value="$(arg side)" />
        <param name="near_backwall_dist" value="0.28"/> <!--ロボットの後ろの壁が近いかどうかの判定値-->
        <param name="near_frontwall_dist" value="0.20"/> <!--ロボットの前の壁が近いかどうかの判定値-->
-@@ -21,13 +27,14 @@
+@@ -19,15 +25,16 @@
+       <param name="stack" value="2.5"/> <!--スタックタイム-->
+       <param name="enemy_find_time" value="13.0"/> <!--初期状態を持続する最短時間-->
        <param name="enemy_target_offset" value="0.1"/> <!--敵を目標とするときに中心からどれだけオフセットを取るか-->
-       <param name="current_dir" value= "$(find burger_war)/scripts"/>
+-      <param name="current_dir" value= "$(find burger_war)/scripts"/>
++      <param name="current_dir" value= "$(find burger_war_level8)/scripts"/>
      </node>
 -    
 -    <node pkg="burger_war" type="globalPlanner2.py" name="globalPlanner" output="screen"/>
 -    <!-- localization & navigation -->
 -    <include file="$(find burger_navigation)/launch/burger_navigation.launch"/>
  
-+    <node pkg="burger_war" type="globalPlanner2.py" name="globalPlanner" output="screen">
++    <node pkg="burger_war_level8" type="globalPlanner2.py" name="globalPlanner" output="screen">
 +      <param name="robot_namespace" value="$(arg robot_namespace)" />
 +    </node>
 +    
      <!-- Estimate enemy -->
-     <include file="$(find burger_war)/launch/get_enemy.launch">
+-    <include file="$(find burger_war)/launch/get_enemy.launch">
++    <include file="$(find burger_war_level8)/launch/get_enemy.launch">
 +      <arg name="robot_namespace" default="$(arg robot_namespace)"/>
        <arg name = "side" value= "$(arg side)"/>
      </include>
  
+diff --git a/burger_war/package.xml b/burger_war/package.xml
+index bf46832..99f7e90 100644
+--- a/burger_war/package.xml
++++ b/burger_war/package.xml
+@@ -1,6 +1,6 @@
+ <?xml version="1.0"?>
+ <package>
+-  <name>burger_war</name>
++  <name>burger_war_level8</name>
+   <version>0.0.0</version>
+   <description>The burger_war package</description>
+ 
 diff --git a/burger_war/scripts/EnemyState.py b/burger_war/scripts/EnemyState.py
-index 9fc35c6..6d8fe05 100755
+index 9fc35c6..7b8022a 100755
 --- a/burger_war/scripts/EnemyState.py
 +++ b/burger_war/scripts/EnemyState.py
+@@ -11,7 +11,7 @@ by Takuya Yamaguchi @dashimaki360
+ import rospy
+ from std_msgs.msg import Int8
+ from std_msgs.msg import Int16MultiArray
+-from burger_war.srv import VisualFeedbackFlag,VisualFeedbackFlagResponse
++from burger_war_level8.srv import VisualFeedbackFlag,VisualFeedbackFlagResponse
+ from geometry_msgs.msg import PoseStamped, Pose
+ from geometry_msgs.msg import Twist
+ from sensor_msgs.msg import Image
 @@ -29,6 +29,7 @@ from time import sleep
  class EnemyBot(object):
      def __init__(self, use_camera=False):
@@ -319,9 +455,18 @@ index beed465..0a03a67 100755
          self.pub_flag = rospy.Publisher('lidar_flag', Bool, queue_size=1)
          self.sub_obstacles   = rospy.Subscriber('obstacles', Obstacles, self.obstacles_callback)
 diff --git a/burger_war/scripts/globalPlanner2.py b/burger_war/scripts/globalPlanner2.py
-index ebfcb33..49900ef 100755
+index ebfcb33..c176c19 100755
 --- a/burger_war/scripts/globalPlanner2.py
 +++ b/burger_war/scripts/globalPlanner2.py
+@@ -17,7 +17,7 @@ from nav_msgs.msg import Odometry
+ from std_msgs.msg import String
+ 
+ from std_srvs.srv import Empty, EmptyResponse
+-from burger_war.srv import DesiredPose, DesiredPoseResponse
++from burger_war_level8.srv import DesiredPose, DesiredPoseResponse
+ 
+ class Node:
+     def __init__(self, num, parent, cost, heuristic):
 @@ -25,6 +25,7 @@ class Node:
          self.parent = parent
          self.cost = cost
@@ -360,9 +505,9 @@ index ebfcb33..49900ef 100755
          # Initialize
 +        self.robot_namespace = rospy.get_param("~robot_namespace", '')
          self.ac = actionlib.SimpleActionClient('move_base', MoveBaseAction)
-+        print("move base!!!")
++        #print("move base!!!")
          self.ac.wait_for_server()
-+        print("move base wait end!!!")
++        #print("move base wait end!!!")
  
          self.desired_pose = PoseStamped()
          self.current_pose = PoseStamped()
@@ -370,7 +515,7 @@ index ebfcb33..49900ef 100755
          self.status = 0
  
          # Subscriber
-+        print("service!!")
++        #print("service!!")
          self.odom_sub = rospy.Subscriber('odom', Odometry, self.odomCallback)
          self.move_base_status_sub = rospy.Subscriber('/move_base/status', GoalStatusArray, self.movebaseCallback)
          
@@ -379,7 +524,7 @@ index ebfcb33..49900ef 100755
          rospy.wait_for_service("pathplan_succeeded")
          self.service_call = rospy.ServiceProxy("pathplan_succeeded", Empty)
 -
-+        print("service end!!")
++        #print("service end!!")
  
      def desiredPoseCallback(self, data):
          #if self.desired_pose.pose.position.x == data.goal.pose.position.x \
@@ -493,14 +638,23 @@ index 8c405a8..1ba1602 100755
                  #rospy.logerr('LookupTransform Eroor my pose !')
                  rate.sleep()
 diff --git a/burger_war/scripts/send_priority_goal.py b/burger_war/scripts/send_priority_goal.py
-index 26d96b9..edbafb6 100755
+index 26d96b9..4c15621 100755
 --- a/burger_war/scripts/send_priority_goal.py
 +++ b/burger_war/scripts/send_priority_goal.py
+@@ -20,7 +20,7 @@ from std_msgs.msg import String, Int16MultiArray, Int8, ColorRGBA
+ from move_base_msgs.msg import MoveBaseAction, MoveBaseGoal
+ 
+ #Import ROS service type
+-from burger_war.srv import DesiredPose, VisualFeedbackFlag
++from burger_war_level8.srv import DesiredPose, VisualFeedbackFlag
+ from std_srvs.srv import Empty,EmptyResponse
+ 
+ #Import other program
 @@ -29,8 +29,10 @@ from server_receiver import ServerReceiver
          
  class SendPriorityGoal(ServerReceiver): #ServerReceiverの継承
      def __init__(self):
-+        print("init!!!!!")
++        #print("init!!!!!")
          super(SendPriorityGoal,self).__init__()
          #Get parameter
 +        self.robot_namespace = rospy.get_param("~robot_namespace", '')
@@ -511,13 +665,13 @@ index 26d96b9..edbafb6 100755
          self.path_success_srv = rospy.Service("pathplan_succeeded",Empty, self.successCallback)
  
          #Service Client
-+        print("send priority goal init A!!!!!")
++        #print("send priority goal init A!!!!!")
          rospy.wait_for_service("desired_pose")
          self.desired_pose_call = rospy.ServiceProxy("desired_pose",DesiredPose)
-+        print("send priority goal init B!!!!!")
++        #print("send priority goal init B!!!!!")
          rospy.wait_for_service("reset_pathplan")
          self.cancel_goal_call = rospy.ServiceProxy("reset_pathplan", Empty)
-+        print("send priority goal init C!!!!!")
++        #print("send priority goal init C!!!!!")
          rospy.wait_for_service("vf_flag")
          self.vf_flag_call = rospy.ServiceProxy("vf_flag", VisualFeedbackFlag) 
  
@@ -533,7 +687,7 @@ index 26d96b9..edbafb6 100755
 +            [0,0.53,np.pi-np.pi],[0,0.53,np.pi-np.pi/2],[0,-.53,np.pi]] #的を取る順番       # blue
          self.escape_flag = [0,0] #両方Trueの時に敵から遠い的を取りに行く 1:vf状態に入ったか 2:escape状態に入ったか
 -        
-+        print("init end!!!!!")
++        #print("init end!!!!!")
 +
      def velCallback(self, data):
          if not (data.linear.x == 0.0 and data.angular.z == 0.0):
@@ -546,7 +700,7 @@ index 26d96b9..edbafb6 100755
 -        goal.header.frame_id = "map"
 +        goal = PoseStamped()        
 +        goal.header.frame_id = self.robot_namespace + "/map"
-+        print("send goal start !!!!!!")
++        #print("send goal start !!!!!!")
          if target == "Enemy":
              th = math.atan2(self.enemy_pose.pose.position.y-self.my_pose.pose.position.y,
                              self.enemy_pose.pose.position.x-self.my_pose.pose.position.x)
@@ -556,7 +710,7 @@ index 26d96b9..edbafb6 100755
              goal.pose.orientation = Quaternion(q[0],q[1],q[2],q[3])
 -            
 +
-+        print("send goal end!!!!!!")
++        #print("send goal end!!!!!!")
          self.goal_pub.publish(goal) #for rviz
          self.desired_pose_call(goal)
  
