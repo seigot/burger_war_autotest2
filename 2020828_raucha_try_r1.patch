@@ -34,3 +34,321 @@ index a7e77f8,7033255..0000000
 - roslaunch burger_war sim_level_3_clubhouse.launch
 + roslaunch burger_war sim_robot_run.launch enemy_level:=$VALUE_L
 ++
+diff --git a/burger_navigation/launch/burger_navigation.launch b/burger_navigation/launch/burger_navigation.launch
+index 0be13d2..763c820 100644
+--- a/burger_navigation/launch/burger_navigation.launch
++++ b/burger_navigation/launch/burger_navigation.launch
+@@ -3,7 +3,7 @@
+ <launch>
+   <!-- Arguments -->
+   <arg name="map_file" default="$(find burger_navigation)/maps/map.yaml"/>
+-  <arg name="open_rviz" default="true"/>
++  <arg name="open_rviz" default="false"/>
+   <arg name="move_forward_only" default="false"/>
+   <arg name="cmd_vel_topic" default="cmd_vel" />
+   <arg name="odom_topic" default="odom" />
+@@ -11,9 +11,11 @@
+   <arg name="initial_pose_x" default="-1.3"/>
+   <arg name="initial_pose_y" default="0.0"/>
+   <arg name="initial_pose_a" default="0.0"/>
++  <arg name="robot_namespace" default=""/>
+ 
+   <!-- Map server -->
+   <node pkg="map_server" name="map_server" type="map_server" args="$(arg map_file)">
++    <param name="frame_id"  value="$(arg robot_namespace)/map"/>
+   </node>
+ 
+ 
+@@ -60,9 +62,9 @@
+     <param name="odom_alpha2"               value="0.1"/>
+     <param name="odom_alpha3"               value="0.1"/>
+     <param name="odom_alpha4"               value="0.1"/> -->
+-    <param name="odom_frame_id"             value="odom"/>
+-    <param name="base_frame_id"             value="base_footprint"/>
+-    <param name="global_frame_id"           value="map"/>
++    <param name="odom_frame_id"             value="$(arg robot_namespace)/odom"/>
++    <param name="base_frame_id"             value="$(arg robot_namespace)/base_footprint"/>
++    <param name="global_frame_id"           value="$(arg robot_namespace)/map"/>
+   </node>
+ 
+ 
+@@ -79,12 +81,12 @@
+     <remap from="odom" to="$(arg odom_topic)"/>
+     <param name="DWAPlannerROS/min_vel_x" value="0.0" if="$(arg move_forward_only)" />
+ 
+-    <param name="local_costmap/global_frame"             value="odom"/>
+-    <param name="local_costmap/robot_base_frame"             value="base_link"/>
+-    <param name="local_costmap/scan/sensor_frame"             value="base_scan"/>
+-    <param name="global_costmap/robot_base_frame"            value="base_link"/>
+-    <param name="global_costmap/global_frame"            value="map"/>
+-    <param name="global_costmap/scan/sensor_frame"             value="base_scan"/>
++    <param name="local_costmap/global_frame"             value="$(arg robot_namespace)/odom"/>
++    <param name="local_costmap/robot_base_frame"             value="$(arg robot_namespace)/base_link"/>
++    <param name="local_costmap/scan/sensor_frame"             value="$(arg robot_namespace)/base_scan"/>
++    <param name="global_costmap/robot_base_frame"            value="$(arg robot_namespace)/base_link"/>
++    <param name="global_costmap/global_frame"            value="$(arg robot_namespace)/map"/>
++    <param name="global_costmap/scan/sensor_frame"             value="$(arg robot_namespace)/base_scan"/>
+   </node>
+ 
+   <!-- rviz -->
+diff --git a/burger_navigation/launch/your_burger_navigation_sample.launch b/burger_navigation/launch/your_burger_navigation_sample.launch
+index 52cd83b..dd3c3e1 100644
+--- a/burger_navigation/launch/your_burger_navigation_sample.launch
++++ b/burger_navigation/launch/your_burger_navigation_sample.launch
+@@ -1,14 +1,11 @@
+ <?xml version="1.0"?>
+ <launch>
+   <arg name="side" default="b"/> <!-- "b" = blue side, "r" = red side  -->
+-
+-    <!-- You can change control program  -->
+-
++  <arg name="robot_namespace" default=""/>
++  <!-- You can change control program  -->
+ 
+   <include file="$(find burger_navigation)/launch/burger_navigation.launch">
++    <arg name="robot_namespace" default="$(arg robot_namespace)"/>
+   </include>
+-
+-
+-    <!-- End of your space  -->
++  <!-- End of your space  -->
+ </launch>
+-
+diff --git a/burger_war/launch/enemy_detector.launch b/burger_war/launch/enemy_detector.launch
+index 7dff11e..e7f6ef2 100644
+--- a/burger_war/launch/enemy_detector.launch
++++ b/burger_war/launch/enemy_detector.launch
+@@ -2,13 +2,16 @@
+ <launch>
+   <arg name="robot_name" default=""/> <!-- robot_name for use NAMESPACE -->
+   <arg name="side" default="r"/> <!-- "b" = blue side, "r" = red side  -->
++  <arg name="robot_namespace" default="enemy_bot"/>
+ 
+   <node pkg="burger_war" type="enemy_detector.py" name="enemy_detector_node" output="screen">
+-      <param name="robot_name" value="$(arg robot_name)" />
++    <param name="robot_namespace" value="$(arg robot_namespace)"/>
++    <param name="robot_name" value="$(arg robot_namespace)" />
+   </node>
+ 
+   <include file="$(find burger_war)/launch/obstacle_detector.launch">
+-      <arg name="robot_name" value="$(arg robot_name)" />
++    <arg name="robot_namespace" default="$(arg robot_namespace)"/>
++    <arg name="robot_name" value="$(arg robot_name)" />
+   </include>
+ 
+   <!-- <node pkg="burger_war" type="scan_trimer.py" name="scan_trimer_node" output="screen"/> -->
+diff --git a/burger_war/launch/obstacle_detector.launch b/burger_war/launch/obstacle_detector.launch
+index 0077a1f..2362085 100644
+--- a/burger_war/launch/obstacle_detector.launch
++++ b/burger_war/launch/obstacle_detector.launch
+@@ -1,6 +1,7 @@
+ <launch>
+ 
+   <arg name="robot_name" default=""/>
++  <arg name="robot_namespace" default="enemy_bot"/>
+ 
+   <node name="obstacle_extractor" pkg="obstacle_detector" type="obstacle_extractor_node">
+     <param name="active"               value="true"/>
+@@ -17,13 +18,12 @@
+     <param name="max_circle_radius"    value="0.15"/>
+     <param name="radius_enlargement"   value="0.0"/>
+ 
+-    <param name="frame_id"             value="map"/>
+-    <!-- <param name="frame_id"             value="$(arg robot_name)/map"/> -->
++    <param name="frame_id"             value="$(arg robot_namespace)/map"/>
+   </node>
+ 
+   <node name="obstacle_tracker" pkg="obstacle_detector" type="obstacle_tracker_node">
+     <param name="loop_rate"         value="15"/>
+-    <param name="frame_id"          value="$(arg robot_name)/map"/>
++    <param name="frame_id"          value="$(arg robot_namespace)/map"/>
+     <remap from="tracked_obstacles" to="obstacles"/>
+   </node>
+ 
+diff --git a/burger_war/launch/sim_robot_run.launch b/burger_war/launch/sim_robot_run.launch
+index 34e6f46..e92701b 100644
+--- a/burger_war/launch/sim_robot_run.launch
++++ b/burger_war/launch/sim_robot_run.launch
+@@ -1,35 +1,18 @@
+ <?xml version="1.0"?>
+ <launch>
+   <arg name="enemy_level" default="1"/>
+-
+ <!-- Your robot control node run  red side-->
++<group ns="enemy_bot">
+   <include file="$(find burger_war)/launch/your_burger.launch">
+-    <arg name="side" value="r" />
++    <arg name="robot_namespace" default="enemy_bot"/>
++    <arg name="side" value="b" />
+   </include>
++</group>
+ 
+-<!-- enemy bot run  blue side-->
+-  <group ns="enemy_bot">
+-    <!-- level 1 (default) -->
+-    <group if="$(eval enemy_level==1)"> 
+-      <include file="$(find burger_war)/launch/sim_level_1_cheese.launch">
+-        <arg name="name_space" value="enemy_bot" />
+-      </include>  
+-    </group>
+-
+-    <!-- level 2 (if you want to run , set launch arg enemy_level=2 --> 
+-    <group if="$(eval enemy_level==2)"> 
+-      <include file="$(find burger_war)/launch/sim_level_2_teriyaki.launch">
+-        <arg name="name_space" value="enemy_bot" />
+-      </include>  
+-    </group>
+-
+-    <!-- level 3 (if you want to run , set launch arg enemy_level=3 --> 
+-    <group if="$(eval enemy_level==3)"> 
+-      <include file="$(find burger_war)/launch/sim_level_3_clubhouse.launch">
+-        <arg name="name_space" value="enemy_bot" />
+-      </include>  
+-    </group>
+-  </group>
++<group if="$(eval enemy_level==1)"> 
++  <include file="$(find burger_war)/launch/sim_level_1_cheese.launch">
++    <arg name="name_space" value="" />
++  </include>  
++</group>
+ 
+ </launch>
+-
+diff --git a/burger_war/launch/your_burger.launch b/burger_war/launch/your_burger.launch
+index 5c8b626..3cf8fbb 100644
+--- a/burger_war/launch/your_burger.launch
++++ b/burger_war/launch/your_burger.launch
+@@ -1,18 +1,25 @@
+ <?xml version="1.0"?>
+ <launch>
+   <arg name="robot_name" default=""/> <!-- robot_name for use NAMESPACE -->
+-  <arg name="side" default="r"/> <!-- "b" = blue side, "r" = red side  -->
++  <arg name="side" default="b"/> <!-- "b" = blue side, "r" = red side  -->
+   <arg name="is_run_node" default="true"/>
++  <arg name="robot_namespace" default="enemy_bot"/>
++
+   <include file="$(find burger_navigation)/launch/your_burger_navigation_sample.launch">
++    <arg name="robot_namespace" default="$(arg robot_namespace)"/>
+     <arg name="side" value="$(arg side)" />
+   </include>
+ 
+   <node pkg="burger_war" type="myRun.py" name="randomRun" output="screen" if="$(arg is_run_node)">
+-    <param name="rside" value="$(arg side)" />
++    <param name="robot_namespace" value="$(arg robot_namespace)" />
++    <!-- <param name="rside" value="$(arg side)" /> -->
++    <param name="rside" value="r" />  <!-- this bot works on blue side with "side="r"", why? -->
+   </node>
+ 
+   <include file="$(find burger_war)/launch/enemy_detector.launch">
+-      <arg name="robot_name" value="$(arg robot_name)" />
++    <arg name="robot_namespace" default="$(arg robot_namespace)"/>
++    <arg name="side" value="$(arg side)" />
++    <arg name="robot_name" value="$(arg robot_name)" />
+   </include>
+ 
+ </launch>
+diff --git a/burger_war/scripts/enemy_detector.py b/burger_war/scripts/enemy_detector.py
+index 2a37b62..707d1ec 100755
+--- a/burger_war/scripts/enemy_detector.py
++++ b/burger_war/scripts/enemy_detector.py
+@@ -15,8 +15,8 @@ class EnemyDetector:
+         self.tf_listener     = tf.TransformListener()
+         self.sub_obstacles   = rospy.Subscriber('obstacles', Obstacles, self.obstacles_callback)
+         self.pub_robot2enemy = rospy.Publisher('robot2enemy', Float32, queue_size=10)
+-        self.robot_name      = rospy.get_param('~robot_name', '')
+-
++        self.robot_name      = rospy.get_param('~robot_namespace', '')
++        
+     def obstacles_callback(self, msg):
+ 
+         closest_enemy_len = sys.float_info.max
+diff --git a/burger_war/scripts/myRun.py b/burger_war/scripts/myRun.py
+index 9cf2a5b..4b405c1 100755
+--- a/burger_war/scripts/myRun.py
++++ b/burger_war/scripts/myRun.py
+@@ -34,6 +34,8 @@ def get_goals(my_color, rotation="CW"):
+     else:
+         symbol_2 = 1
+ 
++    #print("get_goals", my_color, symbol, th, symbol_2)
++        
+     # 12x3 (x,y,yaw)
+     TARGET = [
+         [symbol*-0.8, symbol*symbol_2*0.4, radians(symbol_2*(10+th))],
+@@ -59,6 +61,7 @@ def get_goals(my_color, rotation="CW"):
+         [symbol*0, symbol*symbol_2*0.5, radians(symbol_2*(-135+th))],
+         [symbol*-0.5, symbol*symbol_2*0, radians(symbol_2*(0+th))],
+     ]
++    #print("TARGET[0]", TARGET[0])
+     return TARGET
+ 
+ 
+@@ -70,6 +73,9 @@ class RandomBot():
+     def __init__(self, bot_name):
+         self.name = bot_name
+         self.my_color = rospy.get_param('~rside')
++        #print("enemy_mycolor=", self.my_color)
++        self.robot_namespace = rospy.get_param('~robot_namespace')
++        #print("enemy_robot_namespace=", self.robot_namespace)
+ 
+         self.vel_pub = rospy.Publisher('cmd_vel', Twist,queue_size=1)
+         self.detect_inner_pub = rospy.Publisher('detect_inner_th', Marker,queue_size=1)
+@@ -91,7 +97,7 @@ class RandomBot():
+         #print('setGoal x=', x, 'y=', y, 'yaw=', yaw)
+ 
+         goal = MoveBaseGoal()
+-        goal.target_pose.header.frame_id = 'map'
++        goal.target_pose.header.frame_id = self.robot_namespace+'/map'
+         # name = 'red_bot' if self.my_color == 'r' else 'blue_bot'
+         # goal.target_pose.header.frame_id = name + '/map' if self.sim_flag == True else 'map'
+         goal.target_pose.header.stamp = rospy.Time.now()
+@@ -148,7 +154,8 @@ class RandomBot():
+             # ルートの方向決定のループ
+             if None == self.route_direction:
+                 # 敵の移動方向を検出
+-                is_enemy_detected, x, y = self.getEnemyPos("map")
++                map_name=self.robot_namespace+'/map'
++                is_enemy_detected, x, y = self.getEnemyPos(map_name)
+                 if is_enemy_detected:
+                     self.enemy_y += 1 if y > 0 else -1
+                 # スタート正面のポイントをとった時点で、移動方向を決定
+@@ -164,7 +171,8 @@ class RandomBot():
+                     else:
+                         assert()
+                     self.goals = get_goals(self.my_color, self.route_direction)
+-
++                    #print("enemy_bot goals is... ", self.goals, self.my_color, self.route_direction)
++                    
+             # 敵の検出
+             is_enemy_detected, enemy_dist, enemy_rad = self.getEnemyDistRad()
+             # rospy.loginfo("is_enemy_detected:{} enemy_dist{} enemy_rad:{}".format(is_enemy_detected, enemy_dist, enemy_rad))
+@@ -201,7 +209,8 @@ class RandomBot():
+ 
+     def getEnemyPos(self, frame):
+         try:
+-            trans_stamped = self.tfBuffer.lookup_transform(frame, 'enemy_closest', rospy.Time())
++            enemy_closest_name=self.robot_namespace+'/enemy_closest'
++            trans_stamped = self.tfBuffer.lookup_transform(frame, enemy_closest_name, rospy.Time())
+             trans = trans_stamped.transform
+         except (tf2_ros.LookupException, tf2_ros.ConnectivityException, tf2_ros.ExtrapolationException) as e:
+             return False, 0, 0
+@@ -210,7 +219,9 @@ class RandomBot():
+     def getEnemyDistRad(self):
+         try:
+             # <class 'geometry_msgs.msg._TransformStamped.TransformStamped'>
+-            trans_stamped = self.tfBuffer.lookup_transform("base_footprint", 'enemy_closest', rospy.Time())
++            base_footprint_name=self.robot_namespace+'/base_footprint'
++            enemy_closest_name=self.robot_namespace+'/enemy_closest'
++            trans_stamped = self.tfBuffer.lookup_transform(base_footprint_name, enemy_closest_name, rospy.Time())
+             trans = trans_stamped.transform
+             # trans = self.tfBuffer.lookup_transform('enemy_closest', "base_footprint", rospy.Time(), rospy.Duration(4))
+         except (tf2_ros.LookupException, tf2_ros.ConnectivityException, tf2_ros.ExtrapolationException) as e:
+@@ -231,7 +242,7 @@ class RandomBot():
+     
+     def pubDetectRange(self, inner, outer):
+         marker = Marker()
+-        marker.header.frame_id = "/base_link"
++        marker.header.frame_id = self.robot_namespace+'/base_link'
+         marker.header.stamp = rospy.Time.now()
+         marker.ns = "basic_shapes"
+         marker.type = Marker.CYLINDER
