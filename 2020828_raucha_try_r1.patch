@@ -1,0 +1,36 @@
+diff --cc burger_war/launch/setup_sim.launch
+index 3841b70,e1e61f0..0000000
+--- a/burger_war/launch/setup_sim.launch
++++ b/burger_war/launch/setup_sim.launch
+@@@ -43,10 -49,15 +49,16 @@@
+    <group ns="enemy_bot">
+        <!-- spawn the robot -->
+        <param name="robot_description" command="$(find xacro)/xacro --inorder $(find burger_war)/models/blue_bot.urdf.xacro" />
+ +
+        <node name="spawn_urdf" pkg="gazebo_ros" type="spawn_model" args="-urdf -x 0.0 -y 1.3 -z 0.0 -Y -1.57 -model blue_bot -param robot_description">
+        </node>
+- 
++       
++       <!-- burgerbot TF publisher -->
++       <node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher">
++         <param name="publish_frequency" type="double" value="50.0" />
++         <param name="tf_prefix" value="enemy_bot"/>
++       </node>
++   
+        <!-- speed limitter -->
+        <node pkg="burger_war" type="speedLimitter.py" name="speed_limitter" output="screen">
+        </node>
+diff --cc scripts/start.sh
+index a7e77f8,7033255..0000000
+--- a/scripts/start.sh
++++ b/scripts/start.sh
+@@@ -4,7 -16,4 +16,5 @@@ don
+  bash judge/test_scripts/set_running.sh localhost:5000
+  
+  # launch robot control node
+- # roslaunch burger_war sim_robot_run.launch
+- # roslaunch burger_war sim_level_1_cheese.launch
+- # roslaunch burger_war sim_level_2_teriyaki.launch
+- roslaunch burger_war sim_level_3_clubhouse.launch
++ roslaunch burger_war sim_robot_run.launch enemy_level:=$VALUE_L
+++
