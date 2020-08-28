@@ -1,0 +1,30 @@
+diff --git a/autotest/autotest.sh b/autotest/autotest.sh
+index fc3cbf0..1191401 100755
+--- a/autotest/autotest.sh
++++ b/autotest/autotest.sh
+@@ -88,5 +88,6 @@ do
+     do_game ${i} 4 225 # 180 * 5/4
+     do_game ${i} 5 225 # 180 * 5/4
+     do_game ${i} 6 225 # 180 * 5/4
++    do_game ${i} 7 225 # 180 * 5/4
+     #do_push
+ done
+diff --git a/burger_war/launch/sim_robot_run.launch b/burger_war/launch/sim_robot_run.launch
+index c0273ab..4507fff 100644
+--- a/burger_war/launch/sim_robot_run.launch
++++ b/burger_war/launch/sim_robot_run.launch
+@@ -54,6 +54,14 @@
+ 	<arg name="side" value="b" />
+       </include>  
+     </group>
++
++    <!-- level 7 (if you want to run , set launch arg enemy_level=7 --> 
++    <group if="$(eval enemy_level==7)"> 
++      <include file="$(find burger_war_level7)/launch/your_burger.launch">
++        <arg name="robot_namespace" value="enemy_bot" />
++	<arg name="side" value="b" />
++      </include>  
++    </group>
+   </group>
+ 
+ </launch>
