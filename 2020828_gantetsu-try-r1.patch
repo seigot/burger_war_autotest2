@@ -1,12 +1,12 @@
 diff --git a/burger_navigation/launch/burger_navigation.launch b/burger_navigation/launch/burger_navigation.launch
-index 57981e9..e1fb423 100644
+index 57981e9..682b127 100644
 --- a/burger_navigation/launch/burger_navigation.launch
 +++ b/burger_navigation/launch/burger_navigation.launch
 @@ -11,9 +11,11 @@
    <arg name="initial_pose_x" default="-1.3"/>
    <arg name="initial_pose_y" default="0.0"/>
    <arg name="initial_pose_a" default="0.0"/>
-+  <arg name="robot_namespace" default=""/>
++  <arg name="robot_namespace" default="enemy_bot"/>
  
    <!-- Map server -->
    <node pkg="map_server" name="map_server" type="map_server" args="$(arg map_file)">
@@ -33,15 +33,29 @@ index 57981e9..e1fb423 100644
    </node>
  
    <!-- rviz -->
+diff --git a/burger_navigation/param/amcl.yaml b/burger_navigation/param/amcl.yaml
+index 93ae22e..33be726 100644
+--- a/burger_navigation/param/amcl.yaml
++++ b/burger_navigation/param/amcl.yaml
+@@ -37,6 +37,6 @@ odom_alpha2: 0.2  #noise in odometry's rotation estimate from translational comp
+ odom_alpha3: 0.6  #noise in odometry's translation estimate from the translational component of the robot's motion
+ odom_alpha4: 0.4  #noise in odometry's translation estimate from the rotational componentt of the robot's motion
+ odom_alpha5: 0.2
+-odom_frame_id: odom 
+-base_frame_id: base_footprint
+-global_frame_id: map
++odom_frame_id: enemy_bot/odom 
++base_frame_id: enemy_bot/base_footprint
++global_frame_id: enemy_bot/map
 diff --git a/burger_war/launch/enemy_detector.launch b/burger_war/launch/enemy_detector.launch
-index aac5287..c87bdad 100644
+index aac5287..55627c0 100644
 --- a/burger_war/launch/enemy_detector.launch
 +++ b/burger_war/launch/enemy_detector.launch
 @@ -2,15 +2,18 @@
  <launch>
    <arg name="robot_name" default=""/> <!-- robot_name for use NAMESPACE --> 
    <arg name="side" default="r"/> <!-- "b" = blue side, "r" = red side  -->
-+  <arg name="robot_namespace" default=""/>
++  <arg name="robot_namespace" default="enemy_bot"/>
  
    <node pkg="burger_war" type="enemy_detector_lidar.py" name="enemy_detector_node" output="screen">
 -      <param name="robot_name" value="$(arg robot_name)" />
@@ -134,10 +148,10 @@ index 408e129..2fa7fba 100644
    </node>
  
 diff --git a/burger_war/launch/sim_robot_run.launch b/burger_war/launch/sim_robot_run.launch
-index 34e6f46..b70d823 100644
+index 34e6f46..baef026 100644
 --- a/burger_war/launch/sim_robot_run.launch
 +++ b/burger_war/launch/sim_robot_run.launch
-@@ -3,9 +3,12 @@
+@@ -3,33 +3,12 @@
    <arg name="enemy_level" default="1"/>
  
  <!-- Your robot control node run  red side-->
@@ -147,40 +161,67 @@ index 34e6f46..b70d823 100644
 +    <arg name="robot_namespace" value="enemy_bot" />
 +    <arg name="side" value="b" />
    </include>
+-
+-<!-- enemy bot run  blue side-->
+-  <group ns="enemy_bot">
+-    <!-- level 1 (default) -->
+-    <group if="$(eval enemy_level==1)"> 
+-      <include file="$(find burger_war)/launch/sim_level_1_cheese.launch">
+-        <arg name="name_space" value="enemy_bot" />
+-      </include>  
+-    </group>
+-
+-    <!-- level 2 (if you want to run , set launch arg enemy_level=2 --> 
+-    <group if="$(eval enemy_level==2)"> 
+-      <include file="$(find burger_war)/launch/sim_level_2_teriyaki.launch">
+-        <arg name="name_space" value="enemy_bot" />
+-      </include>  
+-    </group>
+-
+-    <!-- level 3 (if you want to run , set launch arg enemy_level=3 --> 
+-    <group if="$(eval enemy_level==3)"> 
+-      <include file="$(find burger_war)/launch/sim_level_3_clubhouse.launch">
+-        <arg name="name_space" value="enemy_bot" />
+-      </include>  
+-    </group>
+-  </group>
 +</group>
  
- <!-- enemy bot run  blue side-->
-   <group ns="enemy_bot">
+ </launch>
+ 
 diff --git a/burger_war/launch/your_burger.launch b/burger_war/launch/your_burger.launch
-index 0c730bb..0ff0616 100644
+index 0c730bb..da0c025 100644
 --- a/burger_war/launch/your_burger.launch
 +++ b/burger_war/launch/your_burger.launch
-@@ -2,9 +2,10 @@
+@@ -2,9 +2,15 @@
  <launch>
    <!-- You can change control program  -->
    <arg name="side" default="r"/> <!-- "b" = blue side, "r" = red side  -->
 -:burger_war
-+  <arg name="robot_namespace" default=""/>
++  <arg name="robot_namespace" default="enemy_bot"/>
  
++    <!-- localization & navigation -->
++    <include file="$(find burger_navigation)/launch/burger_navigation.launch">
++      <arg name="robot_namespace" default="$(arg robot_namespace)"/>
++    </include>
++      
      <node pkg="burger_war" type="send_priority_goal.py" name="send_priority_goal" output="screen">
 +      <param name="robot_namespace" value="$(arg robot_namespace)" />
        <param name="side" value="$(arg side)" />
        <param name="near_backwall_dist" value="0.28"/> <!--ロボットの後ろの壁が近いかどうかの判定値-->
        <param name="near_frontwall_dist" value="0.20"/> <!--ロボットの前の壁が近いかどうかの判定値-->
-@@ -22,12 +23,17 @@
+@@ -21,13 +27,14 @@
+       <param name="enemy_target_offset" value="0.1"/> <!--敵を目標とするときに中心からどれだけオフセットを取るか-->
        <param name="current_dir" value= "$(find burger_war)/scripts"/>
      </node>
-     
+-    
 -    <node pkg="burger_war" type="globalPlanner2.py" name="globalPlanner" output="screen"/>
+-    <!-- localization & navigation -->
+-    <include file="$(find burger_navigation)/launch/burger_navigation.launch"/>
+ 
 +    <node pkg="burger_war" type="globalPlanner2.py" name="globalPlanner" output="screen">
 +      <param name="robot_namespace" value="$(arg robot_namespace)" />
 +    </node>
-     <!-- localization & navigation -->
--    <include file="$(find burger_navigation)/launch/burger_navigation.launch"/>
--
-+    <include file="$(find burger_navigation)/launch/burger_navigation.launch">
-+      <arg name="robot_namespace" default="$(arg robot_namespace)"/>
-+    </include>
 +    
      <!-- Estimate enemy -->
      <include file="$(find burger_war)/launch/get_enemy.launch">
@@ -278,7 +319,7 @@ index beed465..0a03a67 100755
          self.pub_flag = rospy.Publisher('lidar_flag', Bool, queue_size=1)
          self.sub_obstacles   = rospy.Subscriber('obstacles', Obstacles, self.obstacles_callback)
 diff --git a/burger_war/scripts/globalPlanner2.py b/burger_war/scripts/globalPlanner2.py
-index ebfcb33..0c94c7c 100755
+index ebfcb33..49900ef 100755
 --- a/burger_war/scripts/globalPlanner2.py
 +++ b/burger_war/scripts/globalPlanner2.py
 @@ -25,6 +25,7 @@ class Node:
@@ -321,7 +362,7 @@ index ebfcb33..0c94c7c 100755
          self.ac = actionlib.SimpleActionClient('move_base', MoveBaseAction)
 +        print("move base!!!")
          self.ac.wait_for_server()
-+        print("move base end!!!")
++        print("move base wait end!!!")
  
          self.desired_pose = PoseStamped()
          self.current_pose = PoseStamped()
@@ -452,7 +493,7 @@ index 8c405a8..1ba1602 100755
                  #rospy.logerr('LookupTransform Eroor my pose !')
                  rate.sleep()
 diff --git a/burger_war/scripts/send_priority_goal.py b/burger_war/scripts/send_priority_goal.py
-index 26d96b9..6ad936e 100755
+index 26d96b9..edbafb6 100755
 --- a/burger_war/scripts/send_priority_goal.py
 +++ b/burger_war/scripts/send_priority_goal.py
 @@ -29,8 +29,10 @@ from server_receiver import ServerReceiver
@@ -470,19 +511,26 @@ index 26d96b9..6ad936e 100755
          self.path_success_srv = rospy.Service("pathplan_succeeded",Empty, self.successCallback)
  
          #Service Client
-+        print("init A!!!!!")
++        print("send priority goal init A!!!!!")
          rospy.wait_for_service("desired_pose")
          self.desired_pose_call = rospy.ServiceProxy("desired_pose",DesiredPose)
-+        print("init B!!!!!")
++        print("send priority goal init B!!!!!")
          rospy.wait_for_service("reset_pathplan")
          self.cancel_goal_call = rospy.ServiceProxy("reset_pathplan", Empty)
-+        print("init C!!!!!")
++        print("send priority goal init C!!!!!")
          rospy.wait_for_service("vf_flag")
          self.vf_flag_call = rospy.ServiceProxy("vf_flag", VisualFeedbackFlag) 
  
-@@ -72,7 +77,8 @@ class SendPriorityGoal(ServerReceiver): #ServerReceiverの継承
-         self.target_order = [[-0.951,-0.33,-np.pi/6],[-0.471,-0.2,np.pi/6],
-             [0,-0.53,np.pi],[0,-0.53,np.pi/2],[0,-0.53,0]] #的を取る順番
+@@ -69,10 +74,13 @@ class SendPriorityGoal(ServerReceiver): #ServerReceiverの継承
+         self.initial_end_dist = self.enemy_distance_th #この距離まで敵に近づくまでは順番に取る
+         self.initial_state = True 
+         self.target_number = 0 
+-        self.target_order = [[-0.951,-0.33,-np.pi/6],[-0.471,-0.2,np.pi/6],
+-            [0,-0.53,np.pi],[0,-0.53,np.pi/2],[0,-0.53,0]] #的を取る順番
++#        self.target_order = [[-0.951,-0.33,-np.pi/6],[-0.471,-0.2,np.pi/6],
++#            [0,-0.53,np.pi],[0,-0.53,np.pi/2],[0,-0.53,0]] #的を取る順番      # red
++        self.target_order = [[0.951,0.33,np.pi-np.pi/6],[0.471,0.2,np.pi+np.pi/6],
++            [0,0.53,np.pi-np.pi],[0,0.53,np.pi-np.pi/2],[0,-.53,np.pi]] #的を取る順番       # blue
          self.escape_flag = [0,0] #両方Trueの時に敵から遠い的を取りに行く 1:vf状態に入ったか 2:escape状態に入ったか
 -        
 +        print("init end!!!!!")
@@ -490,7 +538,7 @@ index 26d96b9..6ad936e 100755
      def velCallback(self, data):
          if not (data.linear.x == 0.0 and data.angular.z == 0.0):
              self.pre_vel_time = rospy.Time.now().to_sec()
-@@ -82,8 +88,8 @@ class SendPriorityGoal(ServerReceiver): #ServerReceiverの継承
+@@ -82,8 +90,9 @@ class SendPriorityGoal(ServerReceiver): #ServerReceiverの継承
          return EmptyResponse()
  
      def send_goal(self,target):
@@ -498,19 +546,30 @@ index 26d96b9..6ad936e 100755
 -        goal.header.frame_id = "map"
 +        goal = PoseStamped()        
 +        goal.header.frame_id = self.robot_namespace + "/map"
++        print("send goal start !!!!!!")
          if target == "Enemy":
              th = math.atan2(self.enemy_pose.pose.position.y-self.my_pose.pose.position.y,
                              self.enemy_pose.pose.position.x-self.my_pose.pose.position.x)
-@@ -139,6 +145,8 @@ class SendPriorityGoal(ServerReceiver): #ServerReceiverの継承
+@@ -103,7 +112,8 @@ class SendPriorityGoal(ServerReceiver): #ServerReceiverの継承
+             goal.pose.position.y = target[1]
+             q = tf.transformations.quaternion_from_euler(0,0,target[2])
+             goal.pose.orientation = Quaternion(q[0],q[1],q[2],q[3])
+-            
++
++        print("send goal end!!!!!!")
+         self.goal_pub.publish(goal) #for rviz
+         self.desired_pose_call(goal)
+ 
+@@ -139,6 +149,8 @@ class SendPriorityGoal(ServerReceiver): #ServerReceiverの継承
          print ""
  
      def main(self):
 +
-+        print("start!!!!!!")
++        print("main start!!!!!!")
          pre_state = ""
          target = ""
          send_time = 0
-@@ -339,6 +347,7 @@ class SendPriorityGoal(ServerReceiver): #ServerReceiverの継承
+@@ -339,6 +351,7 @@ class SendPriorityGoal(ServerReceiver): #ServerReceiverの継承
          
  
  if __name__ == '__main__':
