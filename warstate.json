@@ -1,0 +1,38 @@
+{
+    'scores':
+    {
+	'r': 7,
+	'b': 1
+    },
+    'players':
+    {
+	'r': 'you',
+	'b': 'enemy'
+    },
+    'state': 'running',
+    'time': 9.21338701248169,
+    'ready':
+    {
+	'r': True,
+	'b': True
+    },
+    'targets': [
+	{'player': 'n', 'name': 'BL_B', 'point': '5'}, # 0
+	{'player': 'n', 'name': 'BL_L', 'point': '3'}, # 1
+	{'player': 'n', 'name': 'BL_R', 'point': '3'}, # 2
+	{'player': 'n', 'name': 'RE_B', 'point': '5'}, # 3
+	{'player': 'n', 'name': 'RE_L', 'point': '3'}, # 4
+	{'player': 'n', 'name': 'RE_R', 'point': '3'}, # 5
+	{'player': 'n', 'name': 'Tomato_N', 'point': '1'}, # 6
+	{'player': 'r', 'name': 'Tomato_S', 'point': '1'}, # 7
+	{'player': 'n', 'name': 'Omelette_N', 'point': '1'}, # 8 
+	{'player': 'n', 'name': 'Omelette_S', 'point': '1'}, # 9
+	{'player': 'r', 'name': 'Pudding_N', 'point': '1'}, # 10
+	{'player': 'r', 'name': 'Pudding_S', 'point': '1'}, # 11
+	{'player': 'r', 'name': 'OctopusWiener_N', 'point': '1'}, # 12
+	{'player': 'r', 'name': 'OctopusWiener_S', 'point': '1'}, # 13
+	{'player': 'b', 'name': 'FriedShrimp_N', 'point': '1'}, # 14
+	{'player': 'n', 'name': 'FriedShrimp_E', 'point': '1'}, # 15
+	{'player': 'r', 'name': 'FriedShrimp_W', 'point': '1'}, # 16
+	{'player': 'r', 'name': 'FriedShrimp_S', 'point': '1'} # 17 ]
+}

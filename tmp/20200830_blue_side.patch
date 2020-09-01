@@ -1,0 +1,179 @@
+diff --git a/burger_war/launch/sim_robot_run.launch b/burger_war/launch/sim_robot_run.launch
+index d80651d..38a6c5d 100644
+--- a/burger_war/launch/sim_robot_run.launch
++++ b/burger_war/launch/sim_robot_run.launch
+@@ -1,11 +1,11 @@
+ <?xml version="1.0"?>
+ <launch>
+   <arg name="enemy_level" default="1"/>
+-
++  <arg name="side" default="r"/>
+ <!-- Your robot control node run  red side-->
+   <include file="$(find burger_war)/launch/your_burger.launch">
+     <arg name="robot_namespace" value="" /> <!-- "" or "enemy_bot" to change ns-->
+-    <arg name="side" value="r" />
++    <arg name="side" value="$(arg side)"/>
+   </include>
+ 
+ <!-- enemy bot run  blue side-->
+diff --git a/burger_war/scripts/seigoRun2.py b/burger_war/scripts/seigoRun2.py
+index 50ae7d4..4e5a416 100755
+--- a/burger_war/scripts/seigoRun2.py
++++ b/burger_war/scripts/seigoRun2.py
+@@ -47,6 +47,9 @@ class ActMode(Enum):
+ #        Front                   Front
+ # ----------------------------------------
+ 
++# when blue side, transfer target definition
++target_idx_translate_tbl_b2r=[3,4,5,0,1,2,13,12,11,10,9,8,7,6,17,16,15,14]
++
+ class SeigoBot2:
+ 
+     def __init__(self):
+@@ -98,6 +101,7 @@ class SeigoBot2:
+ 
+     def get_rosparam(self):
+         self.my_side = rospy.get_param('~side')
++        print("my_side", self.my_side)
+         self.robot_namespace = rospy.get_param('~robot_namespace')
+         self.enemy_time_tolerance = rospy.get_param(
+             'detect_enemy_time_tolerance', default=0.5)
+@@ -234,12 +238,18 @@ class SeigoBot2:
+         # get warstate score state
+ 	for idx in range(18): # number of field targets, how to get the number?
+ 	    target_state = dic["targets"][idx]["player"]
+-	    if target_state == "n":
+-		self.all_field_score[idx] = 1 # no one get this target
++
++            if self.my_side == "r": # red_bot
++                field_score_idx=idx
++            else: # blue_bot
++                field_score_idx=target_idx_translate_tbl_b2r[idx]
++
++            if target_state == "n":
++		self.all_field_score[field_score_idx] = 1 # no one get this target
+ 	    elif target_state == self.my_side:
+-		self.all_field_score[idx] = 0 # my_bot get this target
++		self.all_field_score[field_score_idx] = 0 # my_bot get this target
+ 	    else:
+-		self.all_field_score[idx] = 2 # enemy get this target            
++		self.all_field_score[field_score_idx] = 2 # enemy get this target            
+             #print(self.all_field_score)
+         self.waypoint.set_field_score(self.all_field_score)
+ 
+@@ -252,6 +262,7 @@ class SeigoBot2:
+     # ここで状態決定　
+     def mode_decision(self):
+         exist, distance, direction_diff = self.detect_enemy()
++        exist = False
+         if exist == False:  # いなかったら巡回
+             return ActMode.BASIC
+         else:
+diff --git a/burger_war/scripts/waypoint.py b/burger_war/scripts/waypoint.py
+index 211f680..68141ff 100644
+--- a/burger_war/scripts/waypoint.py
++++ b/burger_war/scripts/waypoint.py
+@@ -32,20 +32,19 @@ class Waypoints:
+             self.Waypoints_Lap = self.Waypoints_Lap+1
+             self.number = 0          
+ 
+-        # disable
+         # check if better target to get score.
+-        #self.better_number = self.number
+-        #for i in range(len(self.points)):
+-        #    # check next target status
+-        #    self.next_target_idx = self.points[self.better_number][3]
+-        #    if self.all_field_score[self.next_target_idx] != 0:
+-        #        print("better target to get score", self.number)
+-        #        self.number = self.better_number
+-        #        break
+-        #
+-        #    self.better_number = self.better_number+1
+-        #    if self.better_number == len(self.points):
+-        #        self.better_number = 0
++        self.better_number = self.number
++        for i in range(len(self.points)):
++            # check next target status
++            self.next_target_idx = self.points[self.better_number][3]
++            if self.all_field_score[self.next_target_idx] != 0:
++                print("better target to get score", self.number)
++                self.number = self.better_number
++                break
++        
++            self.better_number = self.better_number+1
++            if self.better_number == len(self.points):
++                self.better_number = 0
+ 
+         return self.points[self.number][0:3]
+ 
+diff --git a/scripts/sim_with_judge.sh b/scripts/sim_with_judge.sh
+index ee496e6..0eb977c 100644
+--- a/scripts/sim_with_judge.sh
++++ b/scripts/sim_with_judge.sh
+@@ -2,14 +2,36 @@
+ set -e
+ set -x
+ 
++# set default your color red
++VALUE_SIDE="r"
++
++# get args level setting
++while getopts s: OPT
++do
++  case $OPT in
++    "s" ) FLG_S="TUR"  ; VALUE_SIDE="$OPTARG" ;;
++  esac
++done
++
++
+ # judge
+ # run judge server and visualize window
+ gnome-terminal -e "python judge/judgeServer.py"
++sleep 1
+ gnome-terminal -e "python judge/visualizeWindow.py"
+ 
+ # init judge server for sim setting
+-bash judge/test_scripts/init_single_play.sh judge/marker_set/sim.csv localhost:5000 you enemy
++case $VALUE_SIDE in
++    "r" ) bash judge/test_scripts/init_single_play.sh judge/marker_set/sim.csv localhost:5000 you enemy ;;
++    "b" ) bash judge/test_scripts/init_single_play.sh judge/marker_set/sim.csv localhost:5000 enemy you ;;
++    * ) bash judge/test_scripts/init_single_play.sh judge/marker_set/sim.csv localhost:5000 you enemy ;;
++esac
++
+ 
+ # robot
+-roslaunch burger_war setup_sim.launch
++case $VALUE_SIDE in
++    "r" ) roslaunch burger_war setup_sim.launch ;;
++    "b" ) roslaunch burger_war setup_sim_blue.launch ;;
++    * ) roslaunch burger_war setup_sim.launch ;;
++esac
+ 
+diff --git a/scripts/start.sh b/scripts/start.sh
+index 7033255..0a7197f 100644
+--- a/scripts/start.sh
++++ b/scripts/start.sh
+@@ -2,13 +2,15 @@
+ 
+ # set default level 1
+ VALUE_L="1"
+-
++# set default color red
++VALUE_SIDE="r"
+ 
+ # get args level setting
+-while getopts l: OPT
++while getopts ls: OPT
+ do
+   case $OPT in
+     "l" ) FLG_L="TRUE" ; VALUE_L="$OPTARG" ;;
++    "s" ) FLG_S="TRUE"  ; VALUE_SIDE="$OPTARG" ;;
+   esac
+ done
+ 
+@@ -16,4 +18,4 @@ done
+ bash judge/test_scripts/set_running.sh localhost:5000
+ 
+ # launch robot control node
+-roslaunch burger_war sim_robot_run.launch enemy_level:=$VALUE_L
++roslaunch burger_war sim_robot_run.launch enemy_level:=$VALUE_L side:=$VALUE_SIDE
