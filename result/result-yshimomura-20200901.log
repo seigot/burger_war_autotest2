@@ -76,3 +76,4 @@ iteration, enemy_name, game_time(s), date, my_score, enemy_score, battle_result
 0
 0
 0, LOSE
+61, yshimomura, 250, 2020-09-02T22:31:52+00:00, 15, 4, WIN
