@@ -1,0 +1,166 @@
+diff --git a/autotest/autotest.sh b/autotest/autotest.sh
+index 6ff0307..ae800b0 100755
+--- a/autotest/autotest.sh
++++ b/autotest/autotest.sh
+@@ -11,7 +11,7 @@ LATEST_GITLOG_HASH="xxxx"
+ 
+ echo "iteration, enemy_level, game_time(s), date, my_score, enemy_score, battle_result, my_side" > $RESULTLOG
+ 
+-LOOP_TIMES=10
++LOOP_TIMES=100
+ 
+ function do_game(){
+     ITERATION=$1
+@@ -92,15 +92,15 @@ COMMENTOUT
+ for ((i=0; i<${LOOP_TIMES}; i++));
+ do
+     #check_latest_hash
+-    do_game ${i} 1 225 # 180 * 5/4 
+-    do_game ${i} 2 225 # 180 * 5/4 
+-    do_game ${i} 3 225 # 180 * 5/4
++    #do_game ${i} 1 225 # 180 * 5/4 
++    #do_game ${i} 2 225 # 180 * 5/4 
++    #do_game ${i} 3 225 # 180 * 5/4
+     #do_game ${i} 1 225 "b" # 180 * 5/4 # only enemy level1,2,3 works r side
+     #do_game ${i} 2 225 "b" # 180 * 5/4 # 
+     #do_game ${i} 3 225 "b" # 180 * 5/4 # 
+     do_game ${i} 4 225 # 180 * 5/4
+     do_game ${i} 5 225 # 180 * 5/4
+-    do_game ${i} 6 225 # 180 * 5/4
++    #do_game ${i} 6 225 # 180 * 5/4
+     do_game ${i} 7 225 # 180 * 5/4
+     do_game ${i} 8 225 # 180 * 5/4
+     #do_push
+diff --git a/burger_war/launch/your_burger.launch b/burger_war/launch/your_burger.launch
+index 94ec899..f5c7d03 100644
+--- a/burger_war/launch/your_burger.launch
++++ b/burger_war/launch/your_burger.launch
+@@ -36,10 +36,18 @@
+     <param name="distance_to_wall_th" value="0.15" />
+ 
+     <!-- 攻撃するとき敵まで何メートル近づくか -->
+-    <param name="approach_distance_th" value="0.5" />
++    <param name="approach_distance_th" value="0.55" />
+ 
+     <!-- 敵と方位角の角度差分がこのしきい値を下回ってから、接近 -->
+     <param name="attack_angle_th" value="0.785" />
++
++    <!-- stack detection timeout parameter (sec)-->
++    <param name="stack_detection_time_tolerance_th" value="10.1" />
++    <!-- escape parameter -->
++    <param name="enable_escape_approach" value="true" /> <!-- (m) -->
++    <param name="escape_approach_distance_th_min" value="0.231" /> <!-- (m) -->
++    <param name="escape_approach_distance_th_max" value="0.851" /> <!-- (m) -->
++    <param name="escape_approach_time_interval" value="6" /> <!-- (sec) -->
+   </node>
+ 
+   <include file="$(find burger_war)/launch/obstacle_detector.launch">
+diff --git a/burger_war/scripts/seigoRun2.py b/burger_war/scripts/seigoRun2.py
+index 843002d..0d796fb 100755
+--- a/burger_war/scripts/seigoRun2.py
++++ b/burger_war/scripts/seigoRun2.py
+@@ -100,6 +100,7 @@ class SeigoBot2:
+ 
+         self.act_mode = ActMode.BASIC
+         self.get_rosparam()
++        self.escape_mode_start_time = -1
+         self.waypoint = load_waypoint()
+         self.send_goal(self.waypoint.get_current_waypoint())
+ 
+@@ -120,7 +121,18 @@ class SeigoBot2:
+             'camera_range_limit', default=[0.2, 0.5])
+         self.camera_angle_limit = rospy.get_param(
+             'camera_angle_limit', default=30)*math.pi/180
++        self.stack_detection_time_tolerance_th = rospy.get_param(
++            '~stack_detection_time_tolerance_th', default=10.0)
++        self.enable_escape_approach = rospy.get_param(
++            '~enable_escape_approach', default="true")
++        self.escape_approach_distance_th_min = rospy.get_param(
++            '~escape_approach_distance_th_min', default=0.23)
++        self.escape_approach_distance_th_max = rospy.get_param(
++            '~escape_approach_distance_th_max', default=0.85)
++        self.escape_approach_time_interval = rospy.get_param(
++            '~escape_approach_time_interval', default=6)
+         self.JUDGE_URL = rospy.get_param('/send_id_to_judge/judge_url')
++        print("enable_escape_approach", self.enable_escape_approach)
+ 
+     def imageCallback(self, data):
+         #print("imageCallback+", rospy.Time.now())
+@@ -286,6 +298,9 @@ class SeigoBot2:
+             self.enemy_info = [distance, direction_diff]
+             if self.enemy_body_remain <= 1 and distance < 1.0:
+                 return ActMode.DEFENCE
++            if distance < self.snipe_th and self.enable_escape_approach == True:# and self.Is_lowwer_score == True: #self.is_stack_detect == True:
++                # if stacking and low score, try escape
++                return ActMode.ESCAPE
+             if distance < self.snipe_th:  # 発見して近かったら攻撃
+                 return ActMode.ATTACK
+             # rospy.loginfo('detect enemy but so far')
+@@ -304,6 +319,12 @@ class SeigoBot2:
+             else:
+                 return 'unknown'
+ 
++        # check if stack detect
++        #if self.stack_detection_time != -1 and rospy.Time.now().to_sec - self.stack_detection_time > self.stack_detection_time_tolerance_th:
++        #    self.is_stack_detect = True
++        #else:
++        #    self.is_stack_detect = False
++
+         pre_act_mode = self.act_mode
+         self.act_mode = self.mode_decision()
+         if self.act_mode == ActMode.BASIC:
+@@ -312,6 +333,10 @@ class SeigoBot2:
+             self.attack()
+         elif self.act_mode == ActMode.DEFENCE:
+             self.defence()
++        elif self.act_mode == ActMode.ESCAPE:
++            if pre_act_mode != self.act_mode:
++                self.escape_mode_start_time = rospy.Time.now().to_sec()
++            self.escape()
+         else:
+             rospy.logwarn('unknown actmode !!!')
+ 
+@@ -381,6 +406,7 @@ class SeigoBot2:
+     def attack(self):
+         self.cancel_goal()
+         cmd_vel = self.turn_to_enemy(self.enemy_info[1])
++        # prev_cmd_vel_x = 0
+         # print(self.enemy_info[1]*180/math.pi)
+         valid, vx = self.recovery()
+         # print(valid, vx)
+@@ -394,6 +420,35 @@ class SeigoBot2:
+         self.direct_twist_pub.publish(cmd_vel)
+ 
+     def escape(self):
++        # try to escape from stack
++        # change approach_distance_th
++        local_approach_distance_th = self.approach_distance_th
++        time_diff = rospy.Time.now().to_sec() - self.escape_mode_start_time
++        time_interval = self.escape_approach_time_interval
++        number_of_time_interval = 3
++        time_diff = time_diff % (self.escape_approach_time_interval * number_of_time_interval)
++        if time_diff < time_interval:
++            local_approach_distance_th = self.escape_approach_distance_th_min
++        elif time_diff < time_interval*2:
++            local_approach_distance_th = self.approach_distance_th
++        else:
++            local_approach_distance_th = self.escape_approach_distance_th_max
++        print("time_diff", time_diff, local_approach_distance_th)
++
++        # same with attack mode
++        self.cancel_goal()
++        cmd_vel = self.turn_to_enemy(self.enemy_info[1])
++        # print(self.enemy_info[1]*180/math.pi)
++        valid, vx = self.recovery()
++        # print(valid, vx)
++        if valid == True:
++            cmd_vel.linear.x = vx
++        else:
++            if abs(self.enemy_info[1]) < self.attack_angle_th:
++                cmd_vel.linear.x = self.enemy_info[0]-local_approach_distance_th
++            else:
++                cmd_vel.linear.x = 0.0
++        self.direct_twist_pub.publish(cmd_vel)
+         return
+ 
+     def defence(self):
