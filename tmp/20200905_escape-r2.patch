@@ -1,5 +1,5 @@
 diff --git a/autotest/autotest.sh b/autotest/autotest.sh
-index 6ff0307..ae800b0 100755
+index 6ff0307..8c4becd 100755
 --- a/autotest/autotest.sh
 +++ b/autotest/autotest.sh
 @@ -11,7 +11,7 @@ LATEST_GITLOG_HASH="xxxx"
@@ -11,7 +11,7 @@ index 6ff0307..ae800b0 100755
  
  function do_game(){
      ITERATION=$1
-@@ -92,15 +92,15 @@ COMMENTOUT
+@@ -92,16 +92,16 @@ COMMENTOUT
  for ((i=0; i<${LOOP_TIMES}; i++));
  do
      #check_latest_hash
@@ -24,13 +24,17 @@ index 6ff0307..ae800b0 100755
      #do_game ${i} 1 225 "b" # 180 * 5/4 # only enemy level1,2,3 works r side
      #do_game ${i} 2 225 "b" # 180 * 5/4 # 
      #do_game ${i} 3 225 "b" # 180 * 5/4 # 
-     do_game ${i} 4 225 # 180 * 5/4
-     do_game ${i} 5 225 # 180 * 5/4
+-    do_game ${i} 4 225 # 180 * 5/4
+-    do_game ${i} 5 225 # 180 * 5/4
 -    do_game ${i} 6 225 # 180 * 5/4
+-    do_game ${i} 7 225 # 180 * 5/4
++    #do_game ${i} 4 225 # 180 * 5/4
++    #do_game ${i} 5 225 # 180 * 5/4
 +    #do_game ${i} 6 225 # 180 * 5/4
-     do_game ${i} 7 225 # 180 * 5/4
++    #do_game ${i} 7 225 # 180 * 5/4
      do_game ${i} 8 225 # 180 * 5/4
      #do_push
+ done
 diff --git a/burger_war/launch/your_burger.launch b/burger_war/launch/your_burger.launch
 index 94ec899..67aee4d 100644
 --- a/burger_war/launch/your_burger.launch
@@ -56,7 +60,7 @@ index 94ec899..67aee4d 100644
  
    <include file="$(find burger_war)/launch/obstacle_detector.launch">
 diff --git a/burger_war/scripts/seigoRun2.py b/burger_war/scripts/seigoRun2.py
-index 0ec05a6..b25bc74 100755
+index 0ec05a6..8699c37 100755
 --- a/burger_war/scripts/seigoRun2.py
 +++ b/burger_war/scripts/seigoRun2.py
 @@ -99,6 +99,7 @@ class SeigoBot2:
@@ -89,7 +93,7 @@ index 0ec05a6..b25bc74 100755
              self.enemy_info = [distance, direction_diff]
              if self.enemy_body_remain <= 1 and distance < 1.0:
                  return ActMode.DEFENCE
-+            if distance < self.snipe_th and self.enable_escape_approach == True self.Is_lowwer_score == True: #self.is_stack_detect == True:
++            if distance < self.snipe_th and self.enable_escape_approach == True and self.Is_lowwer_score == True: #self.is_stack_detect == True:
 +                # if stacking and low score, try escape
 +                return ActMode.ESCAPE
              if distance < self.snipe_th:  # 発見して近かったら攻撃
