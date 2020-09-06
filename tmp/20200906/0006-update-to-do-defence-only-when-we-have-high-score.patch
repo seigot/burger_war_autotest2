@@ -1,0 +1,25 @@
+From db20f5557f11d7611563746b4b3645e12a541635 Mon Sep 17 00:00:00 2001
+From: seigot <you@example.com>
+Date: Sat, 5 Sep 2020 16:43:11 +0000
+Subject: [PATCH 6/6] update to do defence only when we have high score.
+
+---
+ burger_war/scripts/seigoRun2.py | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/burger_war/scripts/seigoRun2.py b/burger_war/scripts/seigoRun2.py
+index 09cf28b..10baa6d 100755
+--- a/burger_war/scripts/seigoRun2.py
++++ b/burger_war/scripts/seigoRun2.py
+@@ -294,7 +294,7 @@ class SeigoBot2:
+         else:
+             # print self.enemy_body_remain, self.all_field_score[0:6]
+             self.enemy_info = [distance, direction_diff]
+-            if self.enemy_body_remain <= 1 and distance < 1.0:
++            if self.enemy_body_remain <= 1 and distance < 1.0 and self.Is_lowwer_score == False:
+                 return ActMode.DEFENCE
+             if distance < self.snipe_th and self.enable_escape_approach == True and self.Is_lowwer_score == True:
+                 # if low score, once attack then try to escape.
+-- 
+2.7.4
+

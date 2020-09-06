@@ -1,0 +1,32 @@
+From 4fc6bd9aac9c6c9d96486dd4e44ebfbd2edb9c98 Mon Sep 17 00:00:00 2001
+From: seigot <you@example.com>
+Date: Sat, 5 Sep 2020 16:37:29 +0000
+Subject: [PATCH 5/6] delete unnecessary log
+
+---
+ burger_war/scripts/seigoRun2.py | 2 --
+ 1 file changed, 2 deletions(-)
+
+diff --git a/burger_war/scripts/seigoRun2.py b/burger_war/scripts/seigoRun2.py
+index 3279793..09cf28b 100755
+--- a/burger_war/scripts/seigoRun2.py
++++ b/burger_war/scripts/seigoRun2.py
+@@ -130,7 +130,6 @@ class SeigoBot2:
+             '~escape_approach_distance_th_max', default=0.85)
+         self.escape_approach_time_interval = rospy.get_param(
+             '~escape_approach_time_interval', default=6)
+-        print("enable_escape_approach", self.enable_escape_approach)
+ 
+     def imageCallback(self, data):
+         #print("imageCallback+", rospy.Time.now())
+@@ -424,7 +423,6 @@ class SeigoBot2:
+             local_approach_distance_th = self.approach_distance_th
+         else: # third interval
+             local_approach_distance_th = self.escape_approach_distance_th_max
+-        print("time_diff", time_diff, local_approach_distance_th)
+ 
+         # same with attack mode --->
+         self.cancel_goal()
+-- 
+2.7.4
+

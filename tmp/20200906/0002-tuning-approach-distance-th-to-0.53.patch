@@ -1,0 +1,25 @@
+From a2347af15e2e72fcf16d94cd7eb13d292f5f8549 Mon Sep 17 00:00:00 2001
+From: seigot <you@example.com>
+Date: Sat, 5 Sep 2020 16:27:04 +0000
+Subject: [PATCH 2/6] tuning approach distance th to 0.53
+
+---
+ burger_war/launch/your_burger.launch | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/burger_war/launch/your_burger.launch b/burger_war/launch/your_burger.launch
+index c7b97ef..beef532 100644
+--- a/burger_war/launch/your_burger.launch
++++ b/burger_war/launch/your_burger.launch
+@@ -36,7 +36,7 @@
+     <param name="distance_to_wall_th" value="0.15" />
+ 
+     <!-- 攻撃するとき敵まで何メートル近づくか -->
+-    <param name="approach_distance_th" value="0.5" />
++    <param name="approach_distance_th" value="0.53" />
+ 
+     <!-- 敵と方位角の角度差分がこのしきい値を下回ってから、接近 -->
+     <param name="attack_angle_th" value="0.785" />
+-- 
+2.7.4
+
