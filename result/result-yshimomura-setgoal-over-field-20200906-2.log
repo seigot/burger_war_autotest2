@@ -1,3 +1,2 @@
 iteration, enemy_name, game_time(s), date, my_score, enemy_score, battle_result
-0, yshimomura, 250, 2020-09-06T10:14:58+00:00, 12, 1, WIN
-1, yshimomura, 250, 2020-09-06T10:20:17+00:00, 13, 1, WIN
+0, yshimomura, 250, 2020-09-06T10:30:26+00:00, 12, 22, LOSE
