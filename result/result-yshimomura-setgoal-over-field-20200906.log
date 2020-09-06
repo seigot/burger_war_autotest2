@@ -21,3 +21,4 @@ iteration, enemy_name, game_time(s), date, my_score, enemy_score, battle_result
 19, yshimomura, 250, 2020-09-06T06:50:44+00:00, 17, 3, WIN
 20, yshimomura, 250, 2020-09-06T06:56:03+00:00, 14, 4, WIN
 21, yshimomura, 250, 2020-09-06T07:01:23+00:00, 12, 1, WIN
+22, yshimomura, 250, 2020-09-06T07:06:44+00:00, 12, 7, WIN
