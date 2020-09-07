@@ -1,0 +1,2 @@
+iteration, enemy_name, game_time(s), date, my_score, enemy_score, battle_result
+0, safubuki, 250, 2020-09-07T15:01:18+00:00, 14, 4, WIN
