@@ -16,3 +16,4 @@ iteration, enemy_name, game_time(s), date, my_score, enemy_score, battle_result
 14, safubuki, 250, 2020-09-07T16:15:51+00:00, 5, 5, LOSE
 15, safubuki, 250, 2020-09-07T16:21:11+00:00, 15, 10, WIN
 16, safubuki, 250, 2020-09-07T16:26:31+00:00, 14, 4, WIN
+17, safubuki, 250, 2020-09-07T16:31:51+00:00, 14, 12, WIN
