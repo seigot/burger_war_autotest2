@@ -85,3 +85,4 @@ iteration, enemy_name, game_time(s), date, my_score, enemy_score, battle_result
 83, raucha, 250, 2020-09-08T07:37:47+00:00, 14, 2, WIN
 84, raucha, 250, 2020-09-08T07:43:07+00:00, 4, 5, LOSE
 85, raucha, 250, 2020-09-08T07:48:27+00:00, 13, 3, WIN
+86, raucha, 250, 2020-09-08T07:53:48+00:00, 12, 6, WIN
